@@ -425,6 +425,40 @@
       el.textContent = 'لا توجد جلسة محفوظة';
     }
   }
+// ============ رفع للـ API (Cloudflare KV) ============
+async function pushToCloud() {
+  try {
+    const payload = {
+      date: new Date().toISOString(),
+      items: items.filter(function(i) { return !i.missing; }).map(function(i) {
+        const th = thresholds[i.name];
+        const isLow = th !== undefined && th !== '' && i.qty < th;
+        return {
+          name: i.name,
+          qty: i.qty,
+          low: isLow && !ignoredSet.has(i.name)
+        };
+      }),
+      thresholds: thresholds,
+      ignored: Array.from(ignoredSet),
+      previousItems: previousItems,
+      itemStatus: itemStatus
+    };
+
+    const res = await fetch(API_URL + '/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error('فشل الاتصال');
+    console.log('✅ تم الرفع للسحابة');
+    return true;
+  } catch (e) {
+    console.error('❌ خطأ في الرفع:', e);
+    return false;
+  }
+}
 
   // ============ رفع الملف ============
   function loadFile(event) {
