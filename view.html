@@ -3,7 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مخزن مكتب جلال عبيد | جرد المواد</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2E7D32">
+<link rel="icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="جلال عبيد">
+<meta name="mobile-web-app-capable" content="yes">
+ <title>مخزن مكتب جلال عبيد | جرد المواد</title>
 <style>
   * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
   body { margin: 0; padding: 12px; background: #eef1f5; color: #222; transition: background 0.3s, color 0.3s; }
@@ -238,7 +248,8 @@
   .btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
   .btn-print { background: #455A64; flex: 1; justify-content: center; }
   .btn-refresh { background: #0288D1; flex: 1; justify-content: center; }
-
+.btn-install { background: #2E7D32; flex: 1; justify-content: center; }
+ 
   /* ============ التذييل ============ */
   .footer {
     text-align: center; padding: 18px 15px;
@@ -375,6 +386,7 @@
 <div class="top-actions">
   <button class="btn btn-print" onclick="window.print()">🖨️ طباعة / PDF</button>
   <button class="btn btn-refresh" onclick="manualRefresh()">🔄 تحديث</button>
+<button class="btn btn-install" id="installBtn" onclick="installApp()" style="display:none;">📱 تثبيت التطبيق</button>
 </div>
 
 <!-- ============ البحث ============ -->
@@ -606,6 +618,44 @@
     loadTheme();
     loadData(false);
   });
+
+ // ============ PWA - التثبيت على الشاشة ============
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'flex';
+});
+
+function installApp() {
+  if (!deferredPrompt) {
+    alert('لتثبيت التطبيق يدوياً:\n\n1. افتح قائمة المتصفح (⋮)\n2. اختر "إضافة إلى الشاشة الرئيسية" أو "تثبيت التطبيق"');
+    return;
+  }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(choice) {
+    if (choice.outcome === 'accepted') {
+      const btn = document.getElementById('installBtn');
+      if (btn) btn.style.display = 'none';
+    }
+    deferredPrompt = null;
+  });
+}
+
+window.addEventListener('appinstalled', function() {
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'none';
+});
+
+// إخفاء الزر إذا كان التطبيق مثبتاً بالفعل
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('installBtn');
+    if (btn) btn.style.display = 'none';
+  });
+}
 </script>
 
 </body>
