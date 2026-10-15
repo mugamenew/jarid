@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="جلال عبيد">
 <meta name="mobile-web-app-capable" content="yes">
- <title>مخزن مكتب جلال عبيد | جرد المواد</title>
+<title>مخزن مكتب جلال عبيد | جرد المواد</title>
 <style>
   * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
   body { margin: 0; padding: 12px; background: #eef1f5; color: #222; transition: background 0.3s, color 0.3s; }
@@ -33,70 +33,46 @@
   body.dark .pagination button { background: #333; color: #e0e0e0; border-color: #444; }
   body.dark .stat-box { background: #333; }
 
-  /* ============ الترويسة ============ */
   .header {
     background: linear-gradient(135deg, #2E7D32, #1B5E20);
     color: white; padding: 22px 18px; border-radius: 14px;
     margin-bottom: 10px; text-align: center;
     box-shadow: 0 6px 16px rgba(46,125,50,0.35);
-    position: relative;
-    overflow: hidden;
+    position: relative; overflow: hidden;
   }
   .header::before {
-    content: '';
-    position: absolute;
-    top: -50%; right: -20%;
+    content: ''; position: absolute; top: -50%; right: -20%;
     width: 200px; height: 200px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 50%;
+    background: rgba(255,255,255,0.06); border-radius: 50%;
   }
   .header::after {
-    content: '';
-    position: absolute;
-    bottom: -60%; left: -10%;
+    content: ''; position: absolute; bottom: -60%; left: -10%;
     width: 180px; height: 180px;
-    background: rgba(255,255,255,0.04);
-    border-radius: 50%;
+    background: rgba(255,255,255,0.04); border-radius: 50%;
   }
 
   .store-badge {
-    display: inline-block;
-    background: rgba(255,255,255,0.18);
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
+    display: inline-block; background: rgba(255,255,255,0.18);
+    padding: 5px 14px; border-radius: 20px; font-size: 12px;
+    font-weight: bold; letter-spacing: 1px; margin-bottom: 10px;
     border: 1px solid rgba(255,255,255,0.25);
     position: relative; z-index: 1;
   }
-
   .store-name {
-    font-size: 24px;
-    font-weight: bold;
-    margin: 6px 0 4px;
+    font-size: 24px; font-weight: bold; margin: 6px 0 4px;
     text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     position: relative; z-index: 1;
   }
-
   .store-sub {
-    font-size: 13px;
-    opacity: 0.92;
-    margin-bottom: 8px;
+    font-size: 13px; opacity: 0.92; margin-bottom: 8px;
     position: relative; z-index: 1;
   }
-
   .store-date {
-    font-size: 11px;
-    opacity: 0.8;
-    padding-top: 8px;
+    font-size: 11px; opacity: 0.8; padding-top: 8px;
     border-top: 1px solid rgba(255,255,255,0.2);
-    display: inline-block;
-    margin-top: 4px;
+    display: inline-block; margin-top: 4px;
     position: relative; z-index: 1;
   }
-
   .theme-btn {
     position: absolute; top: 14px; left: 14px;
     background: rgba(255,255,255,0.2); border: none;
@@ -106,10 +82,8 @@
   }
   .theme-btn:hover { background: rgba(255,255,255,0.35); transform: scale(1.05); }
 
-  /* ============ الإحصائيات ============ */
   .stats-mini {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: grid; grid-template-columns: repeat(3, 1fr);
     gap: 8px; margin-bottom: 10px;
     background: white; padding: 10px; border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
@@ -127,7 +101,6 @@
   .stat-box.green .num { color: #2e7d32; }
   body.dark .stat-box .lbl { color: #aaa; }
 
-  /* ============ تنبيه ============ */
   .alert-banner {
     background: #ffebee; border-right: 5px solid #f44336;
     padding: 12px 14px; border-radius: 12px;
@@ -143,7 +116,6 @@
   body.dark .alert-banner .text b { color: #ff8a80; }
   body.dark .alert-banner .text p { color: #ccc; }
 
-  /* ============ البحث ============ */
   .search-box {
     background: white; padding: 10px; border-radius: 12px;
     margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
@@ -155,7 +127,6 @@
   }
   .search-box input:focus { outline: 2px solid #2E7D32; border-color: #2E7D32; }
 
-  /* ============ الفلترة ============ */
   .filter-tabs {
     background: white; padding: 8px; border-radius: 12px;
     margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
@@ -178,7 +149,6 @@
   .filter-tab.low-tab.active { background: #c62828; border-color: #c62828; }
   .filter-tab.zero-tab.active { background: #e65100; border-color: #e65100; }
 
-  /* ============ الجدول ============ */
   .table-container {
     background: white; border-radius: 12px; overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
@@ -212,7 +182,6 @@
 
   .empty { text-align: center; padding: 50px 20px; color: #999; font-size: 15px; }
 
-  /* ============ الصفحات ============ */
   .pagination {
     background: white; padding: 10px; border-radius: 12px;
     display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
@@ -234,7 +203,6 @@
   }
   body.dark .pagination .page-info { color: #aaa; }
 
-  /* ============ الأزرار العلوية ============ */
   .top-actions {
     display: flex; gap: 8px; margin-bottom: 10px;
     flex-wrap: wrap;
@@ -248,9 +216,8 @@
   .btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
   .btn-print { background: #455A64; flex: 1; justify-content: center; }
   .btn-refresh { background: #0288D1; flex: 1; justify-content: center; }
-.btn-install { background: #2E7D32; flex: 1; justify-content: center; }
- 
-  /* ============ التذييل ============ */
+  .btn-install { background: #2E7D32; flex: 1; justify-content: center; }
+
   .footer {
     text-align: center; padding: 18px 15px;
     color: #777; font-size: 12px;
@@ -270,7 +237,32 @@
   }
   body.dark .footer .lock { background: #333; }
 
-  /* ============ الجوال ============ */
+  .status-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; margin-left: 5px;
+    background: #999;
+  }
+  .status-dot.online { background: #4CAF50; animation: pulse 2s infinite; }
+  .status-dot.offline { background: #f44336; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .toast {
+    position: fixed; bottom: 16px; left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: #323232; color: white; padding: 11px 18px;
+    border-radius: 8px; font-size: 13px; z-index: 9999;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    max-width: 90%; text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: #2E7D32; }
+  .toast.error { background: #c62828; }
+  .toast.info { background: #1565C0; }
+
   @media (max-width: 600px) {
     body { padding: 8px; }
     .store-name { font-size: 19px; }
@@ -288,76 +280,44 @@
     .btn { padding: 8px 12px; font-size: 12px; }
   }
 
-  /* ============ الطباعة ============ */
   @media print {
     body { background: white !important; padding: 0; color: black !important; }
-    .theme-btn,
-    .search-box,
-    .filter-tabs,
-    .pagination,
-    .top-actions,
-    .alert-banner { display: none !important; }
-
+    .theme-btn, .search-box, .filter-tabs, .pagination,
+    .top-actions, .alert-banner, .toast { display: none !important; }
     .header {
       background: #2E7D32 !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-      border-radius: 0;
-      box-shadow: none;
-      margin-bottom: 15px;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      border-radius: 0; box-shadow: none; margin-bottom: 15px;
     }
-
     .store-name { font-size: 22px; }
     .store-badge { border-color: white !important; }
-
-    .stats-mini {
-      box-shadow: none;
-      border: 1px solid #ddd;
-      margin-bottom: 15px;
-      page-break-inside: avoid;
-    }
+    .stats-mini { box-shadow: none; border: 1px solid #ddd; margin-bottom: 15px; page-break-inside: avoid; }
     .stat-box { border: 1px solid #eee; }
-
-    .table-container {
-      box-shadow: none;
-      border: 1px solid #ccc;
-    }
-
+    .table-container { box-shadow: none; border: 1px solid #ccc; }
     th {
       background: #2E7D32 !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
       color: white !important;
     }
-
     tr.low { background: #ffebee !important; -webkit-print-color-adjust: exact; }
     tr.low td { color: #b71c1c !important; }
     tr.zero { background: #fff8e1 !important; -webkit-print-color-adjust: exact; }
-
     tr { page-break-inside: avoid; }
-
-    .footer {
-      box-shadow: none;
-      border-top: 2px solid #2E7D32;
-      background: white !important;
-      margin-top: 15px;
-    }
+    .footer { box-shadow: none; border-top: 2px solid #2E7D32; background: white !important; margin-top: 15px; }
     .footer .lock { background: white; border: 1px solid #ddd; }
   }
 </style>
 </head>
 <body>
 
-<!-- ============ الترويسة ============ -->
 <div class="header">
   <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="تبديل الوضع">🌙</button>
   <div class="store-badge">📦 تقرير جرد رسمي</div>
   <div class="store-name">🏪 مخزن مكتب جلال عبيد</div>
   <div class="store-sub">تقرير المخزون الحالي</div>
-  <div class="store-date" id="reportDate">—</div>
+  <div class="store-date" id="reportDate">جاري التحميل...<span class="status-dot" id="statusDot"></span></div>
 </div>
 
-<!-- ============ الإحصائيات ============ -->
 <div class="stats-mini">
   <div class="stat-box green">
     <div class="num" id="statTotal">0</div>
@@ -373,7 +333,6 @@
   </div>
 </div>
 
-<!-- ============ التنبيه ============ -->
 <div class="alert-banner" id="alertBanner">
   <div class="icon">⚠️</div>
   <div class="text">
@@ -382,19 +341,16 @@
   </div>
 </div>
 
-<!-- ============ الأزرار ============ -->
 <div class="top-actions">
   <button class="btn btn-print" onclick="window.print()">🖨️ طباعة / PDF</button>
   <button class="btn btn-refresh" onclick="manualRefresh()">🔄 تحديث</button>
-<button class="btn btn-install" id="installBtn" onclick="installApp()" style="display:none;">📱 تثبيت التطبيق</button>
+  <button class="btn btn-install" id="installBtn" onclick="installApp()" style="display:none;">📱 تثبيت التطبيق</button>
 </div>
 
-<!-- ============ البحث ============ -->
 <div class="search-box">
   <input type="text" id="searchBox" placeholder="🔍 ابحث عن مادة..." oninput="onSearch()">
 </div>
 
-<!-- ============ الفلترة ============ -->
 <div class="filter-tabs">
   <button class="filter-tab active" data-filter="all" onclick="setFilter('all', this)">
     📋 الكل <span class="cnt" id="cntAll">0</span>
@@ -407,7 +363,6 @@
   </button>
 </div>
 
-<!-- ============ الجدول ============ -->
 <div class="table-container">
   <table id="itemsTable">
     <thead>
@@ -418,12 +373,11 @@
       </tr>
     </thead>
     <tbody id="tableBody">
-      <tr><td colspan="3" class="empty">📭 لا توجد بيانات</td></tr>
+      <tr><td colspan="3" class="empty">📭 جاري التحميل...</td></tr>
     </tbody>
   </table>
 </div>
 
-<!-- ============ الصفحات ============ -->
 <div class="pagination" id="pagination" style="display:none">
   <button onclick="goFirst()" id="btnFirst">⏮</button>
   <button onclick="goPrev()" id="btnPrev">◀ السابق</button>
@@ -432,13 +386,17 @@
   <button onclick="goLast()" id="btnLast">⏭</button>
 </div>
 
-<!-- ============ التذييل ============ -->
 <div class="footer">
   <div class="store-sign">🏪 مخزن مكتب جلال عبيد</div>
   <div class="lock">🔒 هذا التقرير للعرض فقط — لا يمكن التعديل عليه</div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
+  // ⚠️ رابط الـ API
+  const API_URL = 'https://jerid-api.mugamenew.workers.dev';
+
   let allItems = [];
   let filtered = [];
   let currentFilter = 'all';
@@ -446,28 +404,48 @@
   const PAGE_SIZE = 50;
   let lastDateStr = null;
 
-  // ============ تحميل البيانات ============
-  function loadData(silent) {
+  // ============ تحميل البيانات من السحابة ============
+  async function loadData(silent) {
     try {
-      const raw = localStorage.getItem('jerid_view_data');
-      if (!raw) {
+      let data = null;
+
+      // 1. جرّب السحابة أولاً
+      try {
+        const res = await fetch(API_URL + '/data');
+        if (res.ok) {
+          const cloudData = await res.json();
+          if (cloudData && cloudData.items && cloudData.items.length > 0) {
+            data = cloudData;
+            setStatus('online');
+          }
+        }
+      } catch (e) {
+        console.warn('السحابة غير متاحة');
+        setStatus('offline');
+      }
+
+      // 2. إذا فشلت السحابة، استخدم localStorage (احتياطي)
+      if (!data) {
+        const raw = localStorage.getItem('jerid_view_data');
+        if (raw) data = JSON.parse(raw);
+      }
+
+      if (!data || !data.items || data.items.length === 0) {
         document.getElementById('tableBody').innerHTML =
-          '<tr><td colspan="3" class="empty">📭 لا توجد بيانات<br><small>اطلب من المسؤول إرسال تقرير جديد</small></td></tr>';
-        document.getElementById('reportDate').textContent = '—';
+          '<tr><td colspan="3" class="empty">📭 لا توجد بيانات<br><small>اطلب من المسؤول رفع الجرد</small></td></tr>';
+        document.getElementById('reportDate').innerHTML = 'لا توجد بيانات<span class="status-dot"></span>';
         document.getElementById('alertBanner').classList.remove('show');
         return;
       }
 
-      const data = JSON.parse(raw);
-
       if (silent && data.date === lastDateStr) return;
       lastDateStr = data.date;
 
-      allItems = data.items || [];
+      allItems = data.items;
 
       const d = new Date(data.date);
-      document.getElementById('reportDate').textContent =
-        '📅 آخر تحديث: ' + d.toLocaleString('ar-EG');
+      document.getElementById('reportDate').innerHTML =
+        '📅 آخر تحديث: ' + d.toLocaleString('ar-EG') + '<span class="status-dot online"></span>';
 
       const lowCount = allItems.filter(function(i) { return i.low; }).length;
       const zeroCount = allItems.filter(function(i) { return i.qty <= 0; }).length;
@@ -492,6 +470,12 @@
       document.getElementById('tableBody').innerHTML =
         '<tr><td colspan="3" class="empty">❌ خطأ في قراءة البيانات</td></tr>';
     }
+  }
+
+  function setStatus(status) {
+    const dot = document.getElementById('statusDot');
+    if (!dot) return;
+    dot.className = 'status-dot ' + status;
   }
 
   // ============ البحث والفلترة ============
@@ -607,11 +591,60 @@
 
   // ============ تحديث يدوي ============
   function manualRefresh() {
-    loadData(false);
+    showToast('⏳ جاري التحديث...', 'info');
+    loadData(false).then(function() {
+      setTimeout(function() { showToast('✅ تم التحديث', 'success'); }, 500);
+    });
   }
 
-  // ============ تحديث تلقائي كل 5 ثوان ============
-  setInterval(function() { loadData(true); }, 5000);
+  // ============ Toast ============
+  function showToast(msg, type) {
+    type = type || 'info';
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function() {
+      t.className = 'toast ' + type;
+    }, 3000);
+  }
+
+  // ============ PWA - التثبيت ============
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('installBtn');
+    if (btn) btn.style.display = 'flex';
+  });
+
+  function installApp() {
+    if (!deferredPrompt) {
+      alert('لتثبيت التطبيق يدوياً:\n\n1. افتح قائمة المتصفح (⋮)\n2. اختر "إضافة إلى الشاشة الرئيسية" أو "تثبيت التطبيق"');
+      return;
+    }
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(choice) {
+      if (choice.outcome === 'accepted') {
+        const btn = document.getElementById('installBtn');
+        if (btn) btn.style.display = 'none';
+      }
+      deferredPrompt = null;
+    });
+  }
+
+  window.addEventListener('appinstalled', function() {
+    const btn = document.getElementById('installBtn');
+    if (btn) btn.style.display = 'none';
+  });
+
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('installBtn');
+      if (btn) btn.style.display = 'none';
+    });
+  }
 
   // ============ بدء التشغيل ============
   window.addEventListener('DOMContentLoaded', function() {
@@ -619,43 +652,8 @@
     loadData(false);
   });
 
- // ============ PWA - التثبيت على الشاشة ============
-let deferredPrompt = null;
-
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  deferredPrompt = e;
-  const btn = document.getElementById('installBtn');
-  if (btn) btn.style.display = 'flex';
-});
-
-function installApp() {
-  if (!deferredPrompt) {
-    alert('لتثبيت التطبيق يدوياً:\n\n1. افتح قائمة المتصفح (⋮)\n2. اختر "إضافة إلى الشاشة الرئيسية" أو "تثبيت التطبيق"');
-    return;
-  }
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(function(choice) {
-    if (choice.outcome === 'accepted') {
-      const btn = document.getElementById('installBtn');
-      if (btn) btn.style.display = 'none';
-    }
-    deferredPrompt = null;
-  });
-}
-
-window.addEventListener('appinstalled', function() {
-  const btn = document.getElementById('installBtn');
-  if (btn) btn.style.display = 'none';
-});
-
-// إخفاء الزر إذا كان التطبيق مثبتاً بالفعل
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-  document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('installBtn');
-    if (btn) btn.style.display = 'none';
-  });
-}
+  // تحديث تلقائي كل 30 ثانية
+  setInterval(function() { loadData(true); }, 30000);
 </script>
 
 </body>
