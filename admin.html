@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📦 برنامج جرد المواد</title>
+<title>📦 برنامج جرد المواد - أدمن</title>
 <style>
   * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
   body { margin: 0; padding: 10px; background: #eef1f5; color: #222; }
@@ -239,7 +239,8 @@
   <button class="btn btn-orange" onclick="checkAlerts()">🔔 التنبيهات</button>
   <button class="btn btn-blue" onclick="exportData()">💾 تحميل ملف</button>
   <button class="btn btn-dark" onclick="previewViewer()">👁️ معاينة المدير</button>
-  <button class="btn btn-teal" onclick="showCopyModal()">📋 نسخ يدوي</button>
+  <button class="btn btn-teal" onclick="manualPushCloud()">☁️ رفع للسحابة</button>
+  <button class="btn btn-gray" onclick="showCopyModal()">📋 نسخ يدوي</button>
   <button class="btn btn-purple" onclick="document.getElementById('importSession').click()">📥 استيراد الجلسة</button>
   <input type="file" id="importSession" accept=".json" style="display:none" onchange="importSession(event)">
   <button class="btn btn-dark" onclick="exportSession()">🗂️ حفظ الجلسة</button>
@@ -334,7 +335,6 @@
   </select>
 </div>
 
-<!-- Modal للنسخ اليدوي -->
 <div class="modal" id="copyModal">
   <div class="modal-content">
     <h3>📋 نسخ يدوي للتصدير</h3>
@@ -353,22 +353,24 @@
 <div class="toast" id="toast"></div>
 
 <script>
- const API_URL = 'https://jerid-api.mugamenew.workers.dev';
+  // ⚠️ رابط الـ Worker API
+  const API_URL = 'https://jerid-api.mugamenew.workers.dev';
+
   // ============ البيانات ============
-  let items = [];                    // كل المواد
-  let itemsMap = new Map();          // للوصول السريع حسب الاسم
-  let previousItems = {};            // الملف السابق
-  let itemStatus = {};               // الحالة
+  let items = [];
+  let itemsMap = new Map();
+  let previousItems = {};
+  let itemStatus = {};
   let newLowItems = [];
-  let thresholds = {};               // الحدود الدنيا
-  let ignoredSet = new Set();        // المواد المتجاهلة (Set أسرع)
+  let thresholds = {};
+  let ignoredSet = new Set();
   let currentFilter = 'all';
   let lastSessionDate = null;
 
   // ============ Pagination ============
   let currentPage = 1;
   let pageSize = 50;
-  let filteredCache = [];            // نتيجة الفلترة الحالية
+  let filteredCache = [];
 
   const STORAGE = {
     THRESHOLDS: 'jerid_thresholds',
@@ -381,6 +383,56 @@
     PAGE_SIZE: 'jerid_page_size'
   };
 
+  // ============ رفع للـ API (Cloudflare KV) ============
+  async function pushToCloud() {
+    try {
+      const payload = {
+        date: new Date().toISOString(),
+        items: items.filter(function(i) { return !i.missing; }).map(function(i) {
+          const th = thresholds[i.name];
+          const isLow = th !== undefined && th !== '' && i.qty < th;
+          return {
+            name: i.name,
+            qty: i.qty,
+            low: isLow && !ignoredSet.has(i.name)
+          };
+        }),
+        thresholds: thresholds,
+        ignored: Array.from(ignoredSet),
+        previousItems: previousItems,
+        itemStatus: itemStatus
+      };
+
+      const res = await fetch(API_URL + '/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('فشل الاتصال');
+      console.log('✅ تم الرفع للسحابة');
+      return true;
+    } catch (e) {
+      console.error('❌ خطأ في الرفع:', e);
+      return false;
+    }
+  }
+
+  // ============ رفع يدوي للسحابة ============
+  async function manualPushCloud() {
+    if (items.length === 0) {
+      showToast('ارفع ملف الجرد أولاً', 'error');
+      return;
+    }
+    showToast('⏳ جاري الرفع...', 'info');
+    const ok = await pushToCloud();
+    if (ok) {
+      showToast('✅ تم الرفع للسحابة بنجاح', 'success');
+    } else {
+      showToast('❌ فشل الرفع', 'error');
+    }
+  }
+
   // ============ حفظ / استرجاع الجلسة ============
   function saveSession() {
     try {
@@ -389,9 +441,9 @@
       localStorage.setItem(STORAGE.PREVIOUS_ITEMS, JSON.stringify(previousItems));
       localStorage.setItem(STORAGE.STATUS, JSON.stringify(itemStatus));
       localStorage.setItem(STORAGE.SESSION_DATE, new Date().toISOString());
-      // ملاحظة: لا نحفظ items لأنها تأتي من الملف
       lastSessionDate = new Date().toISOString();
       updateSessionInfo();
+      pushToCloud();
     } catch (e) {
       console.warn('saveSession:', e);
       if (e.name === 'QuotaExceededError') {
@@ -406,6 +458,7 @@
       const ignoredArr = JSON.parse(localStorage.getItem(STORAGE.IGNORED) || '[]');
       ignoredSet = new Set(ignoredArr);
       previousItems = JSON.parse(localStorage.getItem(STORAGE.PREVIOUS_ITEMS) || '{}');
+      itemStatus = JSON.parse(localStorage.getItem(STORAGE.ITEM_STATUS) || '{}');
       itemStatus = JSON.parse(localStorage.getItem(STORAGE.STATUS) || '{}');
       lastSessionDate = localStorage.getItem(STORAGE.SESSION_DATE);
       const savedFilter = localStorage.getItem(STORAGE.FILTER);
@@ -425,40 +478,6 @@
       el.textContent = 'لا توجد جلسة محفوظة';
     }
   }
-// ============ رفع للـ API (Cloudflare KV) ============
-async function pushToCloud() {
-  try {
-    const payload = {
-      date: new Date().toISOString(),
-      items: items.filter(function(i) { return !i.missing; }).map(function(i) {
-        const th = thresholds[i.name];
-        const isLow = th !== undefined && th !== '' && i.qty < th;
-        return {
-          name: i.name,
-          qty: i.qty,
-          low: isLow && !ignoredSet.has(i.name)
-        };
-      }),
-      thresholds: thresholds,
-      ignored: Array.from(ignoredSet),
-      previousItems: previousItems,
-      itemStatus: itemStatus
-    };
-
-    const res = await fetch(API_URL + '/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) throw new Error('فشل الاتصال');
-    console.log('✅ تم الرفع للسحابة');
-    return true;
-  } catch (e) {
-    console.error('❌ خطأ في الرفع:', e);
-    return false;
-  }
-}
 
   // ============ رفع الملف ============
   function loadFile(event) {
@@ -487,156 +506,139 @@ async function pushToCloud() {
   }
 
   function parseContent(content) {
-  const oldItems = Object.assign({}, previousItems);
-  const newItemsList = [];
-  const lines = content.split(/\r?\n/);
-  const firstLine = lines[0] || '';
-  const delimiter = firstLine.indexOf('\t') !== -1 ? '\t' : ',';
-  const hasPrev = Object.keys(oldItems).length > 0;
+    const oldItems = Object.assign({}, previousItems);
+    const newItemsList = [];
+    const lines = content.split(/\r?\n/);
+    const firstLine = lines[0] || '';
+    const delimiter = firstLine.indexOf('\t') !== -1 ? '\t' : ',';
+    const hasPrev = Object.keys(oldItems).length > 0;
 
-  // 🔍 تحليل العناوين لتحديد مواضع الأعمدة
-  const headerParts = firstLine.split(delimiter).map(function(h) { return h.trim(); });
-  
-  // ابحث عن موضع كل عمود
-  let nameIdx = -1, qtyIdx = -1, thIdx = -1, statusIdx = -1;
-  
-  headerParts.forEach(function(h, i) {
-    const lower = h.toLowerCase();
-    if (lower.indexOf('اسم') !== -1 || lower.indexOf('item_name') !== -1 || lower.indexOf('name') !== -1) {
-      nameIdx = i;
-    } else if (lower.indexOf('كمية') !== -1 || lower.indexOf('item_bal') !== -1 || lower.indexOf('qty') !== -1 || lower.indexOf('bal') !== -1) {
-      qtyIdx = i;
-    } else if (lower.indexOf('حد') !== -1 || lower.indexOf('threshold') !== -1) {
-      thIdx = i;
-    } else if (lower.indexOf('حالة') !== -1 || lower.indexOf('status') !== -1) {
-      statusIdx = i;
-    }
-  });
+    const headerParts = firstLine.split(delimiter).map(function(h) { return h.trim(); });
+    let nameIdx = -1, qtyIdx = -1, thIdx = -1, statusIdx = -1;
 
-  // 🎯 إذا لم نجد الأعمدة (مثلاً ملف بتنسيق قديم 4 أعمدة)
-  // نستخدم الطريقة الافتراضية
-  if (nameIdx === -1 || qtyIdx === -1) {
-    // التنسيق القديم: Text49 | Text47 | item_name | item_bal
-    if (headerParts.length >= 4 && headerParts[3].toLowerCase().indexOf('bal') !== -1) {
-      nameIdx = 2;
-      qtyIdx = 3;
-    } else {
-      // افتراضي: العمود قبل الأخير للاسم، الأخير للكمية
-      nameIdx = 0;
-      qtyIdx = 1;
-    }
-  }
-
-  // 🔄 قراءة الصفوف
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
-    const parts = line.split(delimiter);
-    
-    // تجاهل الأسطر القصيرة
-    if (parts.length <= Math.max(nameIdx, qtyIdx)) continue;
-
-    const name = (parts[nameIdx] || '').trim();
-    const qtyStr = (parts[qtyIdx] || '').trim();
-    
-    if (!name || ['.', '\\', '111', 'ا'].indexOf(name) !== -1) continue;
-
-    const qty = parseFloat(qtyStr) || 0;
-
-    // 🎯 إذا كان هناك عمود حد أدنى في الملف، استخرجه أيضاً
-    let fileThreshold = null;
-    if (thIdx !== -1 && parts[thIdx]) {
-      const t = parseFloat(parts[thIdx]);
-      if (!isNaN(t)) fileThreshold = t;
-    }
-
-    // 🎯 إذا كان هناك عمود حالة = "متجاهل"، تجاهل المادة
-    let fileIgnored = false;
-    if (statusIdx !== -1 && parts[statusIdx]) {
-      if (parts[statusIdx].trim() === 'متجاهل') fileIgnored = true;
-    }
-
-    newItemsList.push({
-      name: name,
-      qty: qty,
-      fileThreshold: fileThreshold,
-      fileIgnored: fileIgnored
-    });
-  }
-
-  // الآن الحسابات (كما كانت)
-  itemStatus = {};
-  const newNames = new Set(newItemsList.map(function(i) { return i.name; }));
-
-  newItemsList.forEach(function(item) {
-    if (!hasPrev || oldItems[item.name] === undefined) {
-      itemStatus[item.name] = 'new';
-    } else if (item.qty > oldItems[item.name]) {
-      itemStatus[item.name] = 'increased';
-    } else if (item.qty < oldItems[item.name]) {
-      itemStatus[item.name] = 'decreased';
-    } else {
-      itemStatus[item.name] = 'same';
-    }
-  });
-
-  if (hasPrev) {
-    Object.keys(oldItems).forEach(function(oldName) {
-      if (!newNames.has(oldName)) {
-        newItemsList.push({ name: oldName, qty: 0, missing: true });
-        itemStatus[oldName] = 'missing';
+    headerParts.forEach(function(h, i) {
+      const lower = h.toLowerCase();
+      if (lower.indexOf('اسم') !== -1 || lower.indexOf('item_name') !== -1 || lower.indexOf('name') !== -1) {
+        nameIdx = i;
+      } else if (lower.indexOf('كمية') !== -1 || lower.indexOf('item_bal') !== -1 || lower.indexOf('qty') !== -1 || lower.indexOf('bal') !== -1) {
+        qtyIdx = i;
+      } else if (lower.indexOf('حد') !== -1 || lower.indexOf('threshold') !== -1) {
+        thIdx = i;
+      } else if (lower.indexOf('حالة') !== -1 || lower.indexOf('status') !== -1) {
+        statusIdx = i;
       }
     });
-  }
 
-  // 🎯 تحديث الحدود الدنيا والتجاهل من الملف
-  newItemsList.forEach(function(item) {
-    if (item.fileThreshold !== null && item.fileThreshold !== undefined) {
-      thresholds[item.name] = item.fileThreshold;
+    if (nameIdx === -1 || qtyIdx === -1) {
+      if (headerParts.length >= 4 && headerParts[3].toLowerCase().indexOf('bal') !== -1) {
+        nameIdx = 2;
+        qtyIdx = 3;
+      } else {
+        nameIdx = 0;
+        qtyIdx = 1;
+      }
     }
-    if (item.fileIgnored) {
-      ignoredSet.add(item.name);
-    }
-  });
 
-  // المواد التي دخلت تحت الحد حديثاً
-  newLowItems = [];
-  newItemsList.forEach(function(item) {
-    if (item.missing) return;
-    const th = thresholds[item.name];
-    if (th === undefined || th === '') return;
-    if (ignoredSet.has(item.name)) return;
-    if (item.qty >= th) return;
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const parts = line.split(delimiter);
+      if (parts.length <= Math.max(nameIdx, qtyIdx)) continue;
 
-    const oldQty = oldItems[item.name];
-    const wasOkBefore = oldQty !== undefined && oldQty >= th;
-    const isNewItem = oldQty === undefined;
+      const name = (parts[nameIdx] || '').trim();
+      const qtyStr = (parts[qtyIdx] || '').trim();
+      if (!name || ['.', '\\', '111', 'ا'].indexOf(name) !== -1) continue;
 
-    if (isNewItem || wasOkBefore) {
-      newLowItems.push({
-        name: item.name,
-        oldQty: oldQty === undefined ? '—' : oldQty,
-        newQty: item.qty,
-        threshold: th
+      const qty = parseFloat(qtyStr) || 0;
+
+      let fileThreshold = null;
+      if (thIdx !== -1 && parts[thIdx]) {
+        const t = parseFloat(parts[thIdx]);
+        if (!isNaN(t)) fileThreshold = t;
+      }
+
+      let fileIgnored = false;
+      if (statusIdx !== -1 && parts[statusIdx]) {
+        if (parts[statusIdx].trim() === 'متجاهل') fileIgnored = true;
+      }
+
+      newItemsList.push({
+        name: name,
+        qty: qty,
+        fileThreshold: fileThreshold,
+        fileIgnored: fileIgnored
       });
     }
-  });
 
-  // تحديث previousItems
-  const currentMap = {};
-  newItemsList.forEach(function(i) {
-    if (!i.missing) currentMap[i.name] = i.qty;
-  });
-  previousItems = currentMap;
+    itemStatus = {};
+    const newNames = new Set(newItemsList.map(function(i) { return i.name; }));
 
-  items = newItemsList;
-  itemsMap = new Map();
-  items.forEach(function(i) { itemsMap.set(i.name, i); });
+    newItemsList.forEach(function(item) {
+      if (!hasPrev || oldItems[item.name] === undefined) {
+        itemStatus[item.name] = 'new';
+      } else if (item.qty > oldItems[item.name]) {
+        itemStatus[item.name] = 'increased';
+      } else if (item.qty < oldItems[item.name]) {
+        itemStatus[item.name] = 'decreased';
+      } else {
+        itemStatus[item.name] = 'same';
+      }
+    });
 
-  renderNewLowAlert();
-  renderTable();
-  updateSessionInfo();
-}
+    if (hasPrev) {
+      Object.keys(oldItems).forEach(function(oldName) {
+        if (!newNames.has(oldName)) {
+          newItemsList.push({ name: oldName, qty: 0, missing: true });
+          itemStatus[oldName] = 'missing';
+        }
+      });
+    }
+
+    newItemsList.forEach(function(item) {
+      if (item.fileThreshold !== null && item.fileThreshold !== undefined) {
+        thresholds[item.name] = item.fileThreshold;
+      }
+      if (item.fileIgnored) {
+        ignoredSet.add(item.name);
+      }
+    });
+
+    newLowItems = [];
+    newItemsList.forEach(function(item) {
+      if (item.missing) return;
+      const th = thresholds[item.name];
+      if (th === undefined || th === '') return;
+      if (ignoredSet.has(item.name)) return;
+      if (item.qty >= th) return;
+
+      const oldQty = oldItems[item.name];
+      const wasOkBefore = oldQty !== undefined && oldQty >= th;
+      const isNewItem = oldQty === undefined;
+
+      if (isNewItem || wasOkBefore) {
+        newLowItems.push({
+          name: item.name,
+          oldQty: oldQty === undefined ? '—' : oldQty,
+          newQty: item.qty,
+          threshold: th
+        });
+      }
+    });
+
+    const currentMap = {};
+    newItemsList.forEach(function(i) {
+      if (!i.missing) currentMap[i.name] = i.qty;
+    });
+    previousItems = currentMap;
+
+    items = newItemsList;
+    itemsMap = new Map();
+    items.forEach(function(i) { itemsMap.set(i.name, i); });
+
+    renderNewLowAlert();
+    renderTable();
+    updateSessionInfo();
+  }
 
   function renderNewLowAlert() {
     const box = document.getElementById('newAlertBox');
@@ -654,7 +656,6 @@ async function pushToCloud() {
     }
   }
 
-  // ============ حساب المطابقة للفلتر ============
   function computeFiltered() {
     const search = document.getElementById('searchBox').value.toLowerCase().trim();
     const result = [];
@@ -687,7 +688,6 @@ async function pushToCloud() {
     return result;
   }
 
-  // ============ رسم الجدول (Pagination) ============
   function renderTable() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
@@ -710,7 +710,6 @@ async function pushToCloud() {
 
     document.getElementById('pagination').style.display = 'flex';
 
-    // حساب النطاق
     let startIdx, endIdx;
     if (pageSize === 0) {
       startIdx = 0;
@@ -722,7 +721,6 @@ async function pushToCloud() {
       endIdx = Math.min(startIdx + pageSize, filteredCache.length);
     }
 
-    // رسم الصفوف
     const fragment = document.createDocumentFragment();
     for (let i = startIdx; i < endIdx; i++) {
       const item = filteredCache[i];
@@ -780,7 +778,6 @@ async function pushToCloud() {
 
     tr.className = rowClass;
 
-    // العمود 1: checkbox
     const td1 = document.createElement('td');
     td1.className = 'checkbox-cell';
     const cb = document.createElement('input');
@@ -789,17 +786,14 @@ async function pushToCloud() {
     cb.onchange = function() { toggleIgnore(item.name, this.checked); };
     td1.appendChild(cb);
 
-    // العمود 2: الاسم
     const td2 = document.createElement('td');
     td2.className = 'name-cell';
     td2.innerHTML = badge + escapeHtml(item.name);
 
-    // العمود 3: الكمية
     const td3 = document.createElement('td');
     td3.className = 'qty';
     td3.textContent = item.missing ? '—' : item.qty;
 
-    // العمود 4: الحد الأدنى
     const td4 = document.createElement('td');
     td4.style.textAlign = 'center';
     const inp = document.createElement('input');
@@ -811,7 +805,6 @@ async function pushToCloud() {
     inp.onchange = function() { setThreshold(item.name, this.value); };
     td4.appendChild(inp);
 
-    // العمود 5: الحالة
     const td5 = document.createElement('td');
     td5.className = 'status';
     td5.textContent = statusText;
@@ -824,7 +817,6 @@ async function pushToCloud() {
     return tr;
   }
 
-  // ============ Pagination Controls ============
   function updatePaginationInfo(startIdx, endIdx) {
     const total = filteredCache.length;
     const totalPages = pageSize === 0 ? 1 : Math.max(1, Math.ceil(total / pageSize));
@@ -850,7 +842,6 @@ async function pushToCloud() {
     renderTable();
   }
 
-  // ============ البحث (مع debounce لتحسين الأداء) ============
   let searchTimer = null;
   function onSearchChange() {
     if (searchTimer) clearTimeout(searchTimer);
@@ -860,7 +851,6 @@ async function pushToCloud() {
     }, 250);
   }
 
-  // ============ تجاهل ============
   function toggleIgnore(name, checked) {
     if (checked) {
       ignoredSet.add(name);
@@ -868,17 +858,10 @@ async function pushToCloud() {
       ignoredSet.delete(name);
     }
     saveSession();
-    // تحديث الصف فقط بدل إعادة الرسم الكامل
-    if (currentFilter === 'ignored' || currentFilter === 'low' || currentFilter === 'ok') {
-      renderTable();
-    } else {
-      // إعادة رسم الصف الحالي
-      renderTable();
-    }
+    renderTable();
     updateStats();
   }
 
-  // ============ الحد الأدنى ============
   function setThreshold(name, value) {
     const oldTh = thresholds[name];
 
@@ -908,10 +891,8 @@ async function pushToCloud() {
     }
     saveSession();
     updateStats();
-    // ملاحظة: لا نعيد رسم الجدول — فقط الصف الحالي يحتفظ بقيمته
   }
 
-  // ============ إحصائيات ============
   function updateStats() {
     let total = 0, zero = 0, low = 0;
     for (let i = 0; i < items.length; i++) {
@@ -947,7 +928,6 @@ async function pushToCloud() {
     return s;
   }
 
-  // ============ الفلترة ============
   function setFilter(filter, btn) {
     currentFilter = filter;
     document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
@@ -957,7 +937,6 @@ async function pushToCloud() {
     renderTable();
   }
 
-  // ============ التنبيهات ============
   function checkAlerts() {
     const box = document.getElementById('alertBox');
     const list = document.getElementById('alertList');
@@ -988,7 +967,6 @@ async function pushToCloud() {
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // ============ إنشاء نص التصدير ============
   function buildExportText() {
     let txt = 'اسم المادة\tالكمية\tالحد الأدنى\tالحالة\tالتغير\n';
     items.forEach(function(item) {
@@ -1021,7 +999,6 @@ async function pushToCloud() {
     return txt;
   }
 
-  // ============ تحميل ملف ============
   function exportData() {
     if (items.length === 0) {
       showToast('لا توجد بيانات للتصدير', 'error');
@@ -1034,7 +1011,6 @@ async function pushToCloud() {
     showToast('✅ تم تحميل ملف التصدير', 'success');
   }
 
-  // ============ النسخ اليدوي (Modal) ============
   function showCopyModal() {
     if (items.length === 0) {
       showToast('لا توجد بيانات للنسخ', 'error');
@@ -1063,7 +1039,6 @@ async function pushToCloud() {
       document.execCommand('copy');
       showToast('✅ تم النسخ للحافظة', 'success');
     } catch (e) {
-      // بديل للمتصفحات الحديثة
       if (navigator.clipboard) {
         navigator.clipboard.writeText(ta.value).then(function() {
           showToast('✅ تم النسخ', 'success');
@@ -1076,7 +1051,6 @@ async function pushToCloud() {
     }
   }
 
-  // ============ حفظ/استيراد الجلسة ============
   function exportSession() {
     if (items.length === 0 && ignoredSet.size === 0 && Object.keys(thresholds).length === 0) {
       showToast('لا توجد بيانات لحفظها', 'error');
@@ -1122,7 +1096,6 @@ async function pushToCloud() {
     event.target.value = '';
   }
 
-  // ============ تنزيل ملف ============
   function downloadFile(filename, content, mimeType) {
     const blob = new Blob(['\ufeff' + content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -1135,7 +1108,6 @@ async function pushToCloud() {
     setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
   }
 
-  // ============ مسح الكل ============
   function clearAll() {
     if (!confirm('⚠️ سيتم مسح كل البيانات:\n- المواد\n- الحدود الدنيا\n- قائمة التجاهل\n\nهل أنت متأكد؟')) return;
     items = [];
@@ -1160,7 +1132,6 @@ async function pushToCloud() {
     showToast('🗑️ تم مسح كل البيانات', 'info');
   }
 
-  // ============ أدوات ============
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -1178,14 +1149,36 @@ async function pushToCloud() {
     }, 4000);
   }
 
+  // ============ معاينة صفحة المدير ============
+  function previewViewer() {
+    if (items.length === 0) {
+      showToast('ارفع ملف الجرد أولاً', 'error');
+      return;
+    }
+    const viewData = {
+      date: new Date().toISOString(),
+      items: items.filter(function(i) { return !i.missing; }).map(function(i) {
+        const th = thresholds[i.name];
+        const isLow = th !== undefined && th !== '' && i.qty < th;
+        return {
+          name: i.name,
+          qty: i.qty,
+          low: isLow && !ignoredSet.has(i.name)
+        };
+      })
+    };
+    viewData.lowCount = viewData.items.filter(function(i) { return i.low; }).length;
+    localStorage.setItem('jerid_view_data', JSON.stringify(viewData));
+    window.open('view.html', '_blank');
+    showToast('✅ تم فتح صفحة المدير', 'success');
+  }
+
   // ============ بدء التشغيل ============
   window.addEventListener('DOMContentLoaded', function() {
     loadSession();
 
-    // ضبط حجم الصفحة من الحفظ
     document.getElementById('pageSize').value = pageSize;
 
-    // تفعيل الفلتر المحفوظ
     if (currentFilter !== 'all') {
       const btn = document.querySelector('[data-filter="' + currentFilter + '"]');
       if (btn) {
@@ -1198,45 +1191,11 @@ async function pushToCloud() {
     renderTable();
     updateSessionInfo();
 
-    // إغلاق Modal عند الضغط خارجه
     document.getElementById('copyModal').addEventListener('click', function(e) {
       if (e.target === this) closeCopyModal();
     });
   });
-
-  // ============ معاينة صفحة المدير ============
-function previewViewer() {
-  if (items.length === 0) {
-    showToast('ارفع ملف الجرد أولاً', 'error');
-    return;
-  }
-  
-  // احفظ نسخة خاصة للعرض
-  const viewData = {
-    date: new Date().toISOString(),
-    items: items.filter(function(i) { return !i.missing; }).map(function(i) {
-      const th = thresholds[i.name];
-      const isLow = th !== undefined && th !== '' && i.qty < th;
-      return {
-        name: i.name,
-        qty: i.qty,
-        low: isLow && !ignoredSet.has(i.name)
-      };
-    }),
-    lowCount: 0
-  };
-  
-  viewData.lowCount = viewData.items.filter(function(i) { return i.low; }).length;
-  
-  // احفظ في localStorage
-  localStorage.setItem('jerid_view_data', JSON.stringify(viewData));
-  
-  // افتح صفحة العرض
-  window.open('view.html', '_blank');
-  showToast('✅ تم فتح صفحة المدير', 'success');
-}
 </script>
 
 </body>
 </html>
-
