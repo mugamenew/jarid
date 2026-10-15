@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📦 برنامج جرد المواد</title>
+<style>
+  * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+  body { margin: 0; padding: 10px; background: #eef1f5; color: #222; }
+
+  .header {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white; padding: 16px; border-radius: 12px;
+    margin-bottom: 10px; text-align: center;
+    box-shadow: 0 4px 10px rgba(76,175,80,0.25);
+  }
+  .header h1 { margin: 0; font-size: 19px; }
+  .header p { margin: 4px 0 0; font-size: 12px; opacity: 0.9; }
+
+  .controls {
+    background: white; padding: 10px; border-radius: 10px;
+    margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  }
+
+  .btn {
+    padding: 8px 12px; border: none; border-radius: 7px;
+    font-size: 12px; font-weight: bold; cursor: pointer;
+    transition: all 0.15s; color: white; white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+  .btn:active { transform: translateY(0); }
+  .btn-green { background: #4CAF50; }
+  .btn-orange { background: #FF9800; }
+  .btn-blue { background: #2196F3; }
+  .btn-red { background: #f44336; }
+  .btn-purple { background: #9C27B0; }
+  .btn-gray { background: #607D8B; }
+  .btn-teal { background: #00897B; }
+  .btn-dark { background: #37474F; }
+
+  .search-wrapper { position: relative; flex: 1; min-width: 160px; }
+  .search-wrapper input {
+    width: 100%; padding: 8px 30px 8px 10px;
+    border: 1px solid #ddd; border-radius: 7px; font-size: 12px;
+  }
+  .search-wrapper::before {
+    content: '🔍'; position: absolute; right: 9px; top: 50%;
+    transform: translateY(-50%); opacity: 0.5; font-size: 13px;
+  }
+
+  .filter-bar {
+    background: white; padding: 8px; border-radius: 10px;
+    margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+  }
+  .filter-bar .label { font-size: 12px; color: #666; margin-left: 4px; font-weight: bold; }
+  .filter-btn {
+    padding: 5px 10px; border: 1px solid #ddd; background: #f8f9fa;
+    border-radius: 15px; font-size: 11px; cursor: pointer;
+    transition: all 0.15s; font-weight: 600;
+  }
+  .filter-btn:hover { background: #e8eaed; }
+  .filter-btn.active { background: #2E7D32; color: white; border-color: #2E7D32; }
+
+  .status-bar {
+    background: white; padding: 8px 12px; border-radius: 9px;
+    margin-bottom: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    font-size: 12px; font-weight: 600;
+  }
+  .status-bar .item { display: flex; align-items: center; gap: 3px; }
+  .status-bar .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .dot-new { background: #2196F3; }
+  .dot-inc { background: #4CAF50; }
+  .dot-dec { background: #f44336; }
+  .dot-mis { background: #455A64; }
+  .status-bar .session-info {
+    margin-right: auto; font-size: 10px; color: #777; font-weight: normal;
+  }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 6px; margin-bottom: 8px;
+  }
+  .stat-card {
+    background: white; padding: 10px 8px; border-radius: 9px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06); text-align: center;
+    border-right: 3px solid #4CAF50; cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-card.red { border-right-color: #f44336; }
+  .stat-card.orange { border-right-color: #FF9800; }
+  .stat-card.gray { border-right-color: #607D8B; }
+  .stat-card .number { font-size: 19px; font-weight: bold; }
+  .stat-card .label { font-size: 10px; color: #777; margin-top: 2px; }
+
+  .alert-box {
+    background: #ffebee; border-right: 4px solid #f44336;
+    padding: 12px; border-radius: 9px; margin-bottom: 10px;
+    display: none; box-shadow: 0 2px 8px rgba(244,67,54,0.15);
+  }
+  .alert-box.show { display: block; }
+  .alert-box.new-alert { background: #fff3e0; border-right-color: #FF9800; }
+  .alert-box h3 { margin: 0 0 6px; font-size: 14px; }
+  .alert-box ul { margin: 0; padding-right: 18px; font-size: 12px; }
+  .alert-box li { margin-bottom: 3px; }
+
+  .table-container {
+    background: white; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: #2E7D32; color: white; padding: 9px 5px;
+    text-align: right; font-size: 12px; position: sticky; top: 0; z-index: 2;
+  }
+  td {
+    padding: 7px 5px; border-bottom: 1px solid #eef0f3;
+    font-size: 12px; vertical-align: middle;
+  }
+  tr:hover { background: #f8f9fb; }
+  tr.low { background: #ffebee !important; }
+  tr.low td { color: #b71c1c; font-weight: 600; }
+  tr.ok { background: #e8f5e9; }
+  tr.ok td { color: #1b5e20; }
+  tr.ignored { background: #eceff1 !important; opacity: 0.65; }
+  tr.ignored td { text-decoration: line-through; color: #607D8B; }
+  tr.missing { background: #eceff1 !important; opacity: 0.85; }
+  tr.missing td { color: #37474F; font-style: italic; }
+
+  .qty { text-align: center; font-weight: bold; font-size: 13px; }
+  .status { text-align: center; font-size: 11px; }
+  .threshold-input {
+    width: 60px; padding: 4px; border: 1px solid #ccc;
+    border-radius: 5px; text-align: center; font-size: 12px;
+  }
+  .threshold-input:focus { outline: 2px solid #4CAF50; border-color: #4CAF50; }
+  .threshold-input:disabled { background: #f0f0f0; cursor: not-allowed; }
+
+  .checkbox-cell { text-align: center; width: 35px; }
+  .checkbox-cell input {
+    width: 18px; height: 18px; cursor: pointer; accent-color: #f44336;
+  }
+
+  .name-cell { font-size: 12px; word-break: break-word; }
+
+  .badge {
+    display: inline-block; font-size: 9px; padding: 1px 6px;
+    border-radius: 8px; margin-left: 4px; font-weight: bold;
+    vertical-align: middle;
+  }
+  .badge-new { background: #2196F3; color: white; }
+  .badge-increase { background: #4CAF50; color: white; }
+  .badge-decrease { background: #f44336; color: white; }
+  .badge-missing { background: #455A64; color: white; }
+
+  .empty { text-align: center; padding: 30px; color: #999; font-size: 14px; }
+
+  .pagination {
+    background: white; padding: 10px; border-radius: 9px;
+    margin-top: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    justify-content: center;
+  }
+  .pagination button {
+    padding: 6px 12px; border: 1px solid #ddd; background: white;
+    border-radius: 6px; font-size: 12px; cursor: pointer;
+    font-weight: bold; transition: all 0.15s;
+  }
+  .pagination button:hover:not(:disabled) {
+    background: #4CAF50; color: white; border-color: #4CAF50;
+  }
+  .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .pagination .page-info { font-size: 12px; color: #666; font-weight: bold; }
+  .pagination select {
+    padding: 5px 8px; border: 1px solid #ddd; border-radius: 6px;
+    font-size: 12px; background: white; cursor: pointer;
+  }
+
+  .toast {
+    position: fixed; bottom: 16px; left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: #323232; color: white; padding: 11px 18px;
+    border-radius: 8px; font-size: 13px; z-index: 999;
+    transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    max-width: 90%; text-align: center;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: #2E7D32; }
+  .toast.error { background: #c62828; }
+  .toast.info { background: #1565C0; }
+
+  .modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000; padding: 15px;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: white; border-radius: 12px; padding: 15px;
+    max-width: 700px; width: 100%; max-height: 90vh; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .modal-content h3 { margin: 0 0 10px; font-size: 15px; }
+  .modal-content textarea {
+    width: 100%; flex: 1; min-height: 300px; padding: 10px;
+    border: 1px solid #ddd; border-radius: 7px;
+    font-family: monospace; font-size: 12px;
+    resize: vertical; direction: ltr; text-align: left;
+  }
+  .modal-actions {
+    display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 6px; }
+    .header h1 { font-size: 16px; }
+    th, td { padding: 6px 3px; font-size: 11px; }
+    .threshold-input { width: 50px; font-size: 11px; }
+    .btn { padding: 6px 9px; font-size: 11px; }
+    .stat-card .number { font-size: 17px; }
+    .stat-card .label { font-size: 9px; }
+    .status-bar { font-size: 11px; padding: 6px; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📦 برنامج جرد المواد</h1>
+  <p>ارفع ملف الجرد وتابع المواد المنخفضة</p>
+</div>
+
+<div class="controls">
+  <button class="btn btn-green" onclick="document.getElementById('fileInput').click()">📂 رفع الجرد</button>
+  <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="loadFile(event)">
+  <button class="btn btn-orange" onclick="checkAlerts()">🔔 التنبيهات</button>
+  <button class="btn btn-blue" onclick="exportData()">💾 تحميل ملف</button>
+  <button class="btn btn-dark" onclick="previewViewer()">👁️ معاينة المدير</button>
+  <button class="btn btn-teal" onclick="showCopyModal()">📋 نسخ يدوي</button>
+  <button class="btn btn-purple" onclick="document.getElementById('importSession').click()">📥 استيراد الجلسة</button>
+  <input type="file" id="importSession" accept=".json" style="display:none" onchange="importSession(event)">
+  <button class="btn btn-dark" onclick="exportSession()">🗂️ حفظ الجلسة</button>
+  <button class="btn btn-red" onclick="clearAll()">🗑️ مسح</button>
+</div>
+
+<div class="controls">
+  <div class="search-wrapper">
+    <input type="text" id="searchBox" placeholder="ابحث عن مادة..." oninput="onSearchChange()">
+  </div>
+</div>
+
+<div class="filter-bar">
+  <span class="label">عرض:</span>
+  <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">الكل</button>
+  <button class="filter-btn" data-filter="low" onclick="setFilter('low', this)">⚠️ منخفض</button>
+  <button class="filter-btn" data-filter="ok" onclick="setFilter('ok', this)">✅ جيد</button>
+  <button class="filter-btn" data-filter="zero" onclick="setFilter('zero', this)">0️⃣ صفري</button>
+  <button class="filter-btn" data-filter="new" onclick="setFilter('new', this)">🆕 جديد</button>
+  <button class="filter-btn" data-filter="increased" onclick="setFilter('increased', this)">➕ زيادة</button>
+  <button class="filter-btn" data-filter="decreased" onclick="setFilter('decreased', this)">➖ نقص</button>
+  <button class="filter-btn" data-filter="missing" onclick="setFilter('missing', this)">❌ مفقود</button>
+  <button class="filter-btn" data-filter="ignored" onclick="setFilter('ignored', this)">🚫 متجاهل</button>
+</div>
+
+<div class="status-bar">
+  <div class="item"><span class="dot dot-new"></span> 🆕 <span id="statNew">0</span></div>
+  <div class="item"><span class="dot dot-inc"></span> ➕ <span id="statInc">0</span></div>
+  <div class="item"><span class="dot dot-dec"></span> ➖ <span id="statDec">0</span></div>
+  <div class="item"><span class="dot dot-mis"></span> ❌ <span id="statMis">0</span></div>
+  <div class="session-info" id="sessionInfo">لا توجد جلسة محفوظة</div>
+</div>
+
+<div class="stats">
+  <div class="stat-card" onclick="setFilter('all', document.querySelector('[data-filter=all]'))">
+    <div class="number" id="totalCount">0</div>
+    <div class="label">إجمالي</div>
+  </div>
+  <div class="stat-card red" onclick="setFilter('low', document.querySelector('[data-filter=low]'))">
+    <div class="number" id="lowCount">0</div>
+    <div class="label">منخفضة</div>
+  </div>
+  <div class="stat-card orange" onclick="setFilter('zero', document.querySelector('[data-filter=zero]'))">
+    <div class="number" id="zeroCount">0</div>
+    <div class="label">صفرية</div>
+  </div>
+  <div class="stat-card gray" onclick="setFilter('ignored', document.querySelector('[data-filter=ignored]'))">
+    <div class="number" id="ignoredCount">0</div>
+    <div class="label">متجاهلة</div>
+  </div>
+</div>
+
+<div class="alert-box new-alert" id="newAlertBox">
+  <h3>🆕 مواد دخلت تحت الحد الأدنى</h3>
+  <ul id="newAlertList"></ul>
+</div>
+
+<div class="alert-box" id="alertBox">
+  <h3>⚠️ كل المواد الأقل من الحد الأدنى</h3>
+  <ul id="alertList"></ul>
+</div>
+
+<div class="table-container">
+  <table id="itemsTable">
+    <thead>
+      <tr>
+        <th class="checkbox-cell">🚫</th>
+        <th style="width:45%">اسم المادة</th>
+        <th style="width:12%">الكمية</th>
+        <th style="width:18%">الحد الأدنى</th>
+        <th style="width:15%">الحالة</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr><td colspan="5" class="empty">📂 لم يتم رفع أي ملف بعد</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination" id="pagination">
+  <button onclick="goFirst()" id="btnFirst">⏮ الأول</button>
+  <button onclick="goPrev()" id="btnPrev">◀ السابق</button>
+  <span class="page-info" id="pageInfo">صفحة 1</span>
+  <button onclick="goNext()" id="btnNext">التالي ▶</button>
+  <button onclick="goLast()" id="btnLast">الأخير ⏭</button>
+  <select id="pageSize" onchange="changePageSize(this.value)">
+    <option value="25">25 / صفحة</option>
+    <option value="50" selected>50 / صفحة</option>
+    <option value="100">100 / صفحة</option>
+    <option value="250">250 / صفحة</option>
+    <option value="0">عرض الكل</option>
+  </select>
+</div>
+
+<!-- Modal للنسخ اليدوي -->
+<div class="modal" id="copyModal">
+  <div class="modal-content">
+    <h3>📋 نسخ يدوي للتصدير</h3>
+    <p style="font-size:12px; color:#666; margin:0 0 8px">
+      ظلل النص بالكامل ثم اضغط Ctrl+C (أو اضغط "نسخ الكل")
+    </p>
+    <textarea id="copyText" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeCopyModal()">إغلاق</button>
+      <button class="btn btn-blue" onclick="selectAllCopy()">تحديد الكل</button>
+      <button class="btn btn-green" onclick="copyToClipboard()">📋 نسخ الكل</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ============ البيانات ============
+  let items = [];                    // كل المواد
+  let itemsMap = new Map();          // للوصول السريع حسب الاسم
+  let previousItems = {};            // الملف السابق
+  let itemStatus = {};               // الحالة
+  let newLowItems = [];
+  let thresholds = {};               // الحدود الدنيا
+  let ignoredSet = new Set();        // المواد المتجاهلة (Set أسرع)
+  let currentFilter = 'all';
+  let lastSessionDate = null;
+
+  // ============ Pagination ============
+  let currentPage = 1;
+  let pageSize = 50;
+  let filteredCache = [];            // نتيجة الفلترة الحالية
+
+  const STORAGE = {
+    THRESHOLDS: 'jerid_thresholds',
+    IGNORED: 'jerid_ignored',
+    ITEMS: 'jerid_items',
+    PREVIOUS_ITEMS: 'jerid_previous_items',
+    STATUS: 'jerid_item_status',
+    SESSION_DATE: 'jerid_session_date',
+    FILTER: 'jerid_last_filter',
+    PAGE_SIZE: 'jerid_page_size'
+  };
+
+  // ============ حفظ / استرجاع الجلسة ============
+  function saveSession() {
+    try {
+      localStorage.setItem(STORAGE.THRESHOLDS, JSON.stringify(thresholds));
+      localStorage.setItem(STORAGE.IGNORED, JSON.stringify(Array.from(ignoredSet)));
+      localStorage.setItem(STORAGE.PREVIOUS_ITEMS, JSON.stringify(previousItems));
+      localStorage.setItem(STORAGE.STATUS, JSON.stringify(itemStatus));
+      localStorage.setItem(STORAGE.SESSION_DATE, new Date().toISOString());
+      // ملاحظة: لا نحفظ items لأنها تأتي من الملف
+      lastSessionDate = new Date().toISOString();
+      updateSessionInfo();
+    } catch (e) {
+      console.warn('saveSession:', e);
+      if (e.name === 'QuotaExceededError') {
+        showToast('⚠️ الذاكرة ممتلئة، لم يتم الحفظ', 'error');
+      }
+    }
+  }
+
+  function loadSession() {
+    try {
+      thresholds = JSON.parse(localStorage.getItem(STORAGE.THRESHOLDS) || '{}');
+      const ignoredArr = JSON.parse(localStorage.getItem(STORAGE.IGNORED) || '[]');
+      ignoredSet = new Set(ignoredArr);
+      previousItems = JSON.parse(localStorage.getItem(STORAGE.PREVIOUS_ITEMS) || '{}');
+      itemStatus = JSON.parse(localStorage.getItem(STORAGE.STATUS) || '{}');
+      lastSessionDate = localStorage.getItem(STORAGE.SESSION_DATE);
+      const savedFilter = localStorage.getItem(STORAGE.FILTER);
+      if (savedFilter) currentFilter = savedFilter;
+      const savedPageSize = localStorage.getItem(STORAGE.PAGE_SIZE);
+      if (savedPageSize) pageSize = parseInt(savedPageSize);
+    } catch (e) { console.warn('loadSession:', e); }
+  }
+
+  function updateSessionInfo() {
+    const el = document.getElementById('sessionInfo');
+    if (!el) return;
+    if (lastSessionDate) {
+      const d = new Date(lastSessionDate);
+      el.textContent = '💾 آخر حفظ: ' + d.toLocaleString('ar-EG');
+    } else {
+      el.textContent = 'لا توجد جلسة محفوظة';
+    }
+  }
+
+  // ============ رفع الملف ============
+  function loadFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const content = e.target.result;
+      parseContent(content);
+      saveSession();
+      currentPage = 1;
+
+      const s = getStatusStats();
+      let msg = '✅ ' + items.filter(function(i) { return !i.missing; }).length + ' مادة';
+      if (s.newItems > 0) msg += ' | 🆕 ' + s.newItems;
+      if (s.increased > 0) msg += ' | ➕ ' + s.increased;
+      if (s.decreased > 0) msg += ' | ➖ ' + s.decreased;
+      if (s.missing > 0) msg += ' | ❌ ' + s.missing;
+      if (newLowItems.length > 0) msg += ' | ⚠️ ' + newLowItems.length;
+
+      showToast(msg, 'info');
+      event.target.value = '';
+    };
+    reader.readAsText(file, 'UTF-8');
+  }
+
+  function parseContent(content) {
+  const oldItems = Object.assign({}, previousItems);
+  const newItemsList = [];
+  const lines = content.split(/\r?\n/);
+  const firstLine = lines[0] || '';
+  const delimiter = firstLine.indexOf('\t') !== -1 ? '\t' : ',';
+  const hasPrev = Object.keys(oldItems).length > 0;
+
+  // 🔍 تحليل العناوين لتحديد مواضع الأعمدة
+  const headerParts = firstLine.split(delimiter).map(function(h) { return h.trim(); });
+  
+  // ابحث عن موضع كل عمود
+  let nameIdx = -1, qtyIdx = -1, thIdx = -1, statusIdx = -1;
+  
+  headerParts.forEach(function(h, i) {
+    const lower = h.toLowerCase();
+    if (lower.indexOf('اسم') !== -1 || lower.indexOf('item_name') !== -1 || lower.indexOf('name') !== -1) {
+      nameIdx = i;
+    } else if (lower.indexOf('كمية') !== -1 || lower.indexOf('item_bal') !== -1 || lower.indexOf('qty') !== -1 || lower.indexOf('bal') !== -1) {
+      qtyIdx = i;
+    } else if (lower.indexOf('حد') !== -1 || lower.indexOf('threshold') !== -1) {
+      thIdx = i;
+    } else if (lower.indexOf('حالة') !== -1 || lower.indexOf('status') !== -1) {
+      statusIdx = i;
+    }
+  });
+
+  // 🎯 إذا لم نجد الأعمدة (مثلاً ملف بتنسيق قديم 4 أعمدة)
+  // نستخدم الطريقة الافتراضية
+  if (nameIdx === -1 || qtyIdx === -1) {
+    // التنسيق القديم: Text49 | Text47 | item_name | item_bal
+    if (headerParts.length >= 4 && headerParts[3].toLowerCase().indexOf('bal') !== -1) {
+      nameIdx = 2;
+      qtyIdx = 3;
+    } else {
+      // افتراضي: العمود قبل الأخير للاسم، الأخير للكمية
+      nameIdx = 0;
+      qtyIdx = 1;
+    }
+  }
+
+  // 🔄 قراءة الصفوف
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const parts = line.split(delimiter);
+    
+    // تجاهل الأسطر القصيرة
+    if (parts.length <= Math.max(nameIdx, qtyIdx)) continue;
+
+    const name = (parts[nameIdx] || '').trim();
+    const qtyStr = (parts[qtyIdx] || '').trim();
+    
+    if (!name || ['.', '\\', '111', 'ا'].indexOf(name) !== -1) continue;
+
+    const qty = parseFloat(qtyStr) || 0;
+
+    // 🎯 إذا كان هناك عمود حد أدنى في الملف، استخرجه أيضاً
+    let fileThreshold = null;
+    if (thIdx !== -1 && parts[thIdx]) {
+      const t = parseFloat(parts[thIdx]);
+      if (!isNaN(t)) fileThreshold = t;
+    }
+
+    // 🎯 إذا كان هناك عمود حالة = "متجاهل"، تجاهل المادة
+    let fileIgnored = false;
+    if (statusIdx !== -1 && parts[statusIdx]) {
+      if (parts[statusIdx].trim() === 'متجاهل') fileIgnored = true;
+    }
+
+    newItemsList.push({
+      name: name,
+      qty: qty,
+      fileThreshold: fileThreshold,
+      fileIgnored: fileIgnored
+    });
+  }
+
+  // الآن الحسابات (كما كانت)
+  itemStatus = {};
+  const newNames = new Set(newItemsList.map(function(i) { return i.name; }));
+
+  newItemsList.forEach(function(item) {
+    if (!hasPrev || oldItems[item.name] === undefined) {
+      itemStatus[item.name] = 'new';
+    } else if (item.qty > oldItems[item.name]) {
+      itemStatus[item.name] = 'increased';
+    } else if (item.qty < oldItems[item.name]) {
+      itemStatus[item.name] = 'decreased';
+    } else {
+      itemStatus[item.name] = 'same';
+    }
+  });
+
+  if (hasPrev) {
+    Object.keys(oldItems).forEach(function(oldName) {
+      if (!newNames.has(oldName)) {
+        newItemsList.push({ name: oldName, qty: 0, missing: true });
+        itemStatus[oldName] = 'missing';
+      }
+    });
+  }
+
+  // 🎯 تحديث الحدود الدنيا والتجاهل من الملف
+  newItemsList.forEach(function(item) {
+    if (item.fileThreshold !== null && item.fileThreshold !== undefined) {
+      thresholds[item.name] = item.fileThreshold;
+    }
+    if (item.fileIgnored) {
+      ignoredSet.add(item.name);
+    }
+  });
+
+  // المواد التي دخلت تحت الحد حديثاً
+  newLowItems = [];
+  newItemsList.forEach(function(item) {
+    if (item.missing) return;
+    const th = thresholds[item.name];
+    if (th === undefined || th === '') return;
+    if (ignoredSet.has(item.name)) return;
+    if (item.qty >= th) return;
+
+    const oldQty = oldItems[item.name];
+    const wasOkBefore = oldQty !== undefined && oldQty >= th;
+    const isNewItem = oldQty === undefined;
+
+    if (isNewItem || wasOkBefore) {
+      newLowItems.push({
+        name: item.name,
+        oldQty: oldQty === undefined ? '—' : oldQty,
+        newQty: item.qty,
+        threshold: th
+      });
+    }
+  });
+
+  // تحديث previousItems
+  const currentMap = {};
+  newItemsList.forEach(function(i) {
+    if (!i.missing) currentMap[i.name] = i.qty;
+  });
+  previousItems = currentMap;
+
+  items = newItemsList;
+  itemsMap = new Map();
+  items.forEach(function(i) { itemsMap.set(i.name, i); });
+
+  renderNewLowAlert();
+  renderTable();
+  updateSessionInfo();
+}
+
+  function renderNewLowAlert() {
+    const box = document.getElementById('newAlertBox');
+    const list = document.getElementById('newAlertList');
+    if (newLowItems.length > 0) {
+      list.innerHTML = '';
+      newLowItems.forEach(function(n) {
+        const li = document.createElement('li');
+        li.textContent = n.name + ' — كان: ' + n.oldQty + ' | الآن: ' + n.newQty + ' | الحد: ' + n.threshold;
+        list.appendChild(li);
+      });
+      box.classList.add('show');
+    } else {
+      box.classList.remove('show');
+    }
+  }
+
+  // ============ حساب المطابقة للفلتر ============
+  function computeFiltered() {
+    const search = document.getElementById('searchBox').value.toLowerCase().trim();
+    const result = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (search && item.name.toLowerCase().indexOf(search) === -1) continue;
+
+      const th = thresholds[item.name];
+      const isIgnored = ignoredSet.has(item.name);
+      const isLow = th !== undefined && th !== '' && item.qty < th;
+      const isOk = th !== undefined && th !== '' && item.qty >= th;
+      const isZero = item.qty <= 0;
+      const status = itemStatus[item.name];
+
+      let pass = true;
+      switch (currentFilter) {
+        case 'low': pass = isLow && !isIgnored && !item.missing; break;
+        case 'ok': pass = isOk && !isIgnored && !item.missing; break;
+        case 'zero': pass = isZero && !isIgnored && !item.missing; break;
+        case 'new': pass = status === 'new' && !isIgnored; break;
+        case 'increased': pass = status === 'increased' && !isIgnored; break;
+        case 'decreased': pass = status === 'decreased' && !isIgnored; break;
+        case 'missing': pass = item.missing === true; break;
+        case 'ignored': pass = isIgnored; break;
+        default: pass = true;
+      }
+      if (pass) result.push(item);
+    }
+    filteredCache = result;
+    return result;
+  }
+
+  // ============ رسم الجدول (Pagination) ============
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    if (items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">📂 لم يتم رفع أي ملف بعد</td></tr>';
+      document.getElementById('pagination').style.display = 'none';
+      updateStats();
+      return;
+    }
+
+    computeFiltered();
+
+    if (filteredCache.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">🔍 لا توجد نتائج</td></tr>';
+      document.getElementById('pagination').style.display = 'none';
+      updateStats();
+      return;
+    }
+
+    document.getElementById('pagination').style.display = 'flex';
+
+    // حساب النطاق
+    let startIdx, endIdx;
+    if (pageSize === 0) {
+      startIdx = 0;
+      endIdx = filteredCache.length;
+    } else {
+      const totalPages = Math.max(1, Math.ceil(filteredCache.length / pageSize));
+      if (currentPage > totalPages) currentPage = totalPages;
+      startIdx = (currentPage - 1) * pageSize;
+      endIdx = Math.min(startIdx + pageSize, filteredCache.length);
+    }
+
+    // رسم الصفوف
+    const fragment = document.createDocumentFragment();
+    for (let i = startIdx; i < endIdx; i++) {
+      const item = filteredCache[i];
+      const tr = buildRow(item);
+      fragment.appendChild(tr);
+    }
+    tbody.appendChild(fragment);
+
+    updatePaginationInfo(startIdx, endIdx);
+    updateStats();
+  }
+
+  function buildRow(item) {
+    const th = thresholds[item.name];
+    const isIgnored = ignoredSet.has(item.name);
+    const status = itemStatus[item.name];
+    const tr = document.createElement('tr');
+
+    let statusText = '—';
+    let rowClass = '';
+    let badge = '';
+
+    if (item.missing) {
+      rowClass = 'missing';
+      statusText = '❌ مفقود';
+      badge = '<span class="badge badge-missing">مفقود</span>';
+    } else if (isIgnored) {
+      rowClass = 'ignored';
+      statusText = '🚫 متجاهل';
+    } else {
+      if (status === 'new') {
+        badge = '<span class="badge badge-new">🆕</span>';
+      } else if (status === 'increased') {
+        const oldQty = previousItems[item.name];
+        if (oldQty !== undefined) {
+          const diff = (item.qty - oldQty).toFixed(2);
+          badge = '<span class="badge badge-increase">➕' + diff + '</span>';
+        }
+      } else if (status === 'decreased') {
+        const oldQty = previousItems[item.name];
+        if (oldQty !== undefined) {
+          const diff = (item.qty - oldQty).toFixed(2);
+          badge = '<span class="badge badge-decrease">➖' + diff + '</span>';
+        }
+      }
+
+      if (th !== undefined && th !== '' && item.qty < th) {
+        rowClass = 'low';
+        statusText = '⚠️ منخفض';
+      } else if (th !== undefined && th !== '') {
+        rowClass = 'ok';
+        statusText = '✅ جيد';
+      }
+    }
+
+    tr.className = rowClass;
+
+    // العمود 1: checkbox
+    const td1 = document.createElement('td');
+    td1.className = 'checkbox-cell';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = isIgnored;
+    cb.onchange = function() { toggleIgnore(item.name, this.checked); };
+    td1.appendChild(cb);
+
+    // العمود 2: الاسم
+    const td2 = document.createElement('td');
+    td2.className = 'name-cell';
+    td2.innerHTML = badge + escapeHtml(item.name);
+
+    // العمود 3: الكمية
+    const td3 = document.createElement('td');
+    td3.className = 'qty';
+    td3.textContent = item.missing ? '—' : item.qty;
+
+    // العمود 4: الحد الأدنى
+    const td4 = document.createElement('td');
+    td4.style.textAlign = 'center';
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.className = 'threshold-input';
+    inp.value = th !== undefined ? th : '';
+    inp.placeholder = '—';
+    if (item.missing) inp.disabled = true;
+    inp.onchange = function() { setThreshold(item.name, this.value); };
+    td4.appendChild(inp);
+
+    // العمود 5: الحالة
+    const td5 = document.createElement('td');
+    td5.className = 'status';
+    td5.textContent = statusText;
+
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    tr.appendChild(td3);
+    tr.appendChild(td4);
+    tr.appendChild(td5);
+    return tr;
+  }
+
+  // ============ Pagination Controls ============
+  function updatePaginationInfo(startIdx, endIdx) {
+    const total = filteredCache.length;
+    const totalPages = pageSize === 0 ? 1 : Math.max(1, Math.ceil(total / pageSize));
+    document.getElementById('pageInfo').textContent =
+      'صفحة ' + currentPage + ' / ' + totalPages +
+      ' — عرض ' + (startIdx + 1) + ' إلى ' + endIdx + ' من ' + total;
+
+    document.getElementById('btnFirst').disabled = currentPage <= 1;
+    document.getElementById('btnPrev').disabled = currentPage <= 1;
+    document.getElementById('btnNext').disabled = currentPage >= totalPages;
+    document.getElementById('btnLast').disabled = currentPage >= totalPages;
+  }
+
+  function goFirst() { currentPage = 1; renderTable(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  function goPrev()  { if (currentPage > 1) { currentPage--; renderTable(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+  function goNext()  { const totalPages = pageSize === 0 ? 1 : Math.ceil(filteredCache.length / pageSize); if (currentPage < totalPages) { currentPage++; renderTable(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+  function goLast()  { const totalPages = pageSize === 0 ? 1 : Math.max(1, Math.ceil(filteredCache.length / pageSize)); currentPage = totalPages; renderTable(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+  function changePageSize(val) {
+    pageSize = parseInt(val);
+    currentPage = 1;
+    localStorage.setItem(STORAGE.PAGE_SIZE, pageSize);
+    renderTable();
+  }
+
+  // ============ البحث (مع debounce لتحسين الأداء) ============
+  let searchTimer = null;
+  function onSearchChange() {
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(function() {
+      currentPage = 1;
+      renderTable();
+    }, 250);
+  }
+
+  // ============ تجاهل ============
+  function toggleIgnore(name, checked) {
+    if (checked) {
+      ignoredSet.add(name);
+    } else {
+      ignoredSet.delete(name);
+    }
+    saveSession();
+    // تحديث الصف فقط بدل إعادة الرسم الكامل
+    if (currentFilter === 'ignored' || currentFilter === 'low' || currentFilter === 'ok') {
+      renderTable();
+    } else {
+      // إعادة رسم الصف الحالي
+      renderTable();
+    }
+    updateStats();
+  }
+
+  // ============ الحد الأدنى ============
+  function setThreshold(name, value) {
+    const oldTh = thresholds[name];
+
+    if (value === '' || isNaN(value)) {
+      delete thresholds[name];
+    } else {
+      thresholds[name] = parseFloat(value);
+
+      const item = itemsMap.get(name);
+      if (item && !item.missing && !ignoredSet.has(name)) {
+        if (item.qty < thresholds[name]) {
+          if (oldTh === undefined || item.qty >= oldTh) {
+            const exists = newLowItems.some(function(n) { return n.name === name; });
+            if (!exists) {
+              const prevQty = previousItems[name];
+              newLowItems.push({
+                name: name,
+                oldQty: prevQty === undefined ? '—' : prevQty,
+                newQty: item.qty,
+                threshold: thresholds[name]
+              });
+              renderNewLowAlert();
+            }
+          }
+        }
+      }
+    }
+    saveSession();
+    updateStats();
+    // ملاحظة: لا نعيد رسم الجدول — فقط الصف الحالي يحتفظ بقيمته
+  }
+
+  // ============ إحصائيات ============
+  function updateStats() {
+    let total = 0, zero = 0, low = 0;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.missing || ignoredSet.has(item.name)) continue;
+      total++;
+      if (item.qty <= 0) zero++;
+      const th = thresholds[item.name];
+      if (th !== undefined && th !== '' && item.qty < th) low++;
+    }
+
+    document.getElementById('totalCount').textContent = total;
+    document.getElementById('zeroCount').textContent = zero;
+    document.getElementById('lowCount').textContent = low;
+    document.getElementById('ignoredCount').textContent = ignoredSet.size;
+
+    const s = getStatusStats();
+    document.getElementById('statNew').textContent = s.newItems;
+    document.getElementById('statInc').textContent = s.increased;
+    document.getElementById('statDec').textContent = s.decreased;
+    document.getElementById('statMis').textContent = s.missing;
+  }
+
+  function getStatusStats() {
+    const s = { newItems: 0, increased: 0, decreased: 0, missing: 0 };
+    for (let i = 0; i < items.length; i++) {
+      const st = itemStatus[items[i].name];
+      if (st === 'new') s.newItems++;
+      else if (st === 'increased') s.increased++;
+      else if (st === 'decreased') s.decreased++;
+      else if (st === 'missing') s.missing++;
+    }
+    return s;
+  }
+
+  // ============ الفلترة ============
+  function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    localStorage.setItem(STORAGE.FILTER, filter);
+    currentPage = 1;
+    renderTable();
+  }
+
+  // ============ التنبيهات ============
+  function checkAlerts() {
+    const box = document.getElementById('alertBox');
+    const list = document.getElementById('alertList');
+
+    const lowItems = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.missing || ignoredSet.has(item.name)) continue;
+      const th = thresholds[item.name];
+      if (th !== undefined && th !== '' && item.qty < th) {
+        lowItems.push(item);
+      }
+    }
+
+    if (lowItems.length === 0) {
+      box.classList.remove('show');
+      showToast('✅ جميع المواد ضمن الحدود الآمنة', 'success');
+      return;
+    }
+
+    list.innerHTML = '';
+    lowItems.forEach(function(item) {
+      const li = document.createElement('li');
+      li.textContent = item.name + ' — الكمية: ' + item.qty + ' | الحد: ' + thresholds[item.name];
+      list.appendChild(li);
+    });
+    box.classList.add('show');
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ============ إنشاء نص التصدير ============
+  function buildExportText() {
+    let txt = 'اسم المادة\tالكمية\tالحد الأدنى\tالحالة\tالتغير\n';
+    items.forEach(function(item) {
+      const th = thresholds[item.name] !== undefined ? thresholds[item.name] : '';
+      let status = '';
+      let change = '';
+      if (item.missing) { status = 'مفقود'; change = '❌'; }
+      else if (ignoredSet.has(item.name)) status = 'متجاهل';
+      else if (th !== '' && item.qty < th) status = 'منخفض';
+      else if (th !== '') status = 'جيد';
+
+      if (!item.missing) {
+        const st = itemStatus[item.name];
+        if (st === 'new') change = 'جديد';
+        else if (st === 'increased') change = '+' + (item.qty - previousItems[item.name]).toFixed(2);
+        else if (st === 'decreased') change = (item.qty - previousItems[item.name]).toFixed(2);
+      }
+      txt += item.name + '\t' + (item.missing ? '—' : item.qty) + '\t' + th + '\t' + status + '\t' + change + '\n';
+    });
+
+    const s = getStatusStats();
+    txt += '\n\n========== ملخص ==========\n';
+    txt += 'تاريخ التصدير: ' + new Date().toLocaleString('ar-EG') + '\n';
+    txt += 'إجمالي المواد: ' + items.filter(function(i) { return !i.missing; }).length + '\n';
+    txt += 'مواد جديدة: ' + s.newItems + '\n';
+    txt += 'مواد زادت: ' + s.increased + '\n';
+    txt += 'مواد نقصت: ' + s.decreased + '\n';
+    txt += 'مواد مفقودة: ' + s.missing + '\n';
+    txt += 'مواد متجاهلة: ' + ignoredSet.size + '\n';
+    return txt;
+  }
+
+  // ============ تحميل ملف ============
+  function exportData() {
+    if (items.length === 0) {
+      showToast('لا توجد بيانات للتصدير', 'error');
+      return;
+    }
+    const now = new Date();
+    const timestamp = now.toISOString().slice(0,16).replace('T','_').replace(/:/g,'-');
+    const txt = buildExportText();
+    downloadFile('jerd_' + timestamp + '.txt', txt, 'text/plain;charset=utf-8');
+    showToast('✅ تم تحميل ملف التصدير', 'success');
+  }
+
+  // ============ النسخ اليدوي (Modal) ============
+  function showCopyModal() {
+    if (items.length === 0) {
+      showToast('لا توجد بيانات للنسخ', 'error');
+      return;
+    }
+    const txt = buildExportText();
+    document.getElementById('copyText').value = txt;
+    document.getElementById('copyModal').classList.add('show');
+  }
+
+  function closeCopyModal() {
+    document.getElementById('copyModal').classList.remove('show');
+  }
+
+  function selectAllCopy() {
+    const ta = document.getElementById('copyText');
+    ta.select();
+    ta.setSelectionRange(0, 999999);
+  }
+
+  function copyToClipboard() {
+    const ta = document.getElementById('copyText');
+    ta.select();
+    ta.setSelectionRange(0, 999999);
+    try {
+      document.execCommand('copy');
+      showToast('✅ تم النسخ للحافظة', 'success');
+    } catch (e) {
+      // بديل للمتصفحات الحديثة
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(ta.value).then(function() {
+          showToast('✅ تم النسخ', 'success');
+        }).catch(function() {
+          showToast('❌ فشل النسخ، ظلل النص يدوياً', 'error');
+        });
+      } else {
+        showToast('❌ انسخ يدوياً (Ctrl+C)', 'error');
+      }
+    }
+  }
+
+  // ============ حفظ/استيراد الجلسة ============
+  function exportSession() {
+    if (items.length === 0 && ignoredSet.size === 0 && Object.keys(thresholds).length === 0) {
+      showToast('لا توجد بيانات لحفظها', 'error');
+      return;
+    }
+    const data = {
+      type: 'jerid_session',
+      version: 1,
+      date: new Date().toISOString(),
+      thresholds: thresholds,
+      ignored: Array.from(ignoredSet),
+      previousItems: previousItems,
+      itemStatus: itemStatus
+    };
+    const now = new Date();
+    const timestamp = now.toISOString().slice(0,16).replace('T','_').replace(/:/g,'-');
+    downloadFile('jerid_session_' + timestamp + '.json', JSON.stringify(data), 'application/json');
+    showToast('✅ تم حفظ الجلسة', 'success');
+  }
+
+  function importSession(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.type !== 'jerid_session') throw new Error('ملف غير صالح');
+        thresholds = data.thresholds || {};
+        ignoredSet = new Set(data.ignored || []);
+        previousItems = data.previousItems || {};
+        itemStatus = data.itemStatus || {};
+        saveSession();
+        renderNewLowAlert();
+        renderTable();
+        updateSessionInfo();
+        showToast('✅ تم استيراد الجلسة', 'success');
+      } catch (err) {
+        showToast('❌ خطأ: ' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+    event.target.value = '';
+  }
+
+  // ============ تنزيل ملف ============
+  function downloadFile(filename, content, mimeType) {
+    const blob = new Blob(['\ufeff' + content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // ============ مسح الكل ============
+  function clearAll() {
+    if (!confirm('⚠️ سيتم مسح كل البيانات:\n- المواد\n- الحدود الدنيا\n- قائمة التجاهل\n\nهل أنت متأكد؟')) return;
+    items = [];
+    itemsMap = new Map();
+    previousItems = {};
+    itemStatus = {};
+    newLowItems = [];
+    thresholds = {};
+    ignoredSet = new Set();
+    lastSessionDate = null;
+    currentPage = 1;
+    Object.keys(STORAGE).forEach(function(k) {
+      localStorage.removeItem(STORAGE[k]);
+    });
+    document.getElementById('fileInput').value = '';
+    document.getElementById('searchBox').value = '';
+    document.getElementById('alertBox').classList.remove('show');
+    document.getElementById('newAlertBox').classList.remove('show');
+    document.getElementById('pagination').style.display = 'none';
+    renderTable();
+    updateSessionInfo();
+    showToast('🗑️ تم مسح كل البيانات', 'info');
+  }
+
+  // ============ أدوات ============
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function showToast(msg, type) {
+    type = type || 'info';
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function() {
+      t.className = 'toast ' + type;
+    }, 4000);
+  }
+
+  // ============ بدء التشغيل ============
+  window.addEventListener('DOMContentLoaded', function() {
+    loadSession();
+
+    // ضبط حجم الصفحة من الحفظ
+    document.getElementById('pageSize').value = pageSize;
+
+    // تفعيل الفلتر المحفوظ
+    if (currentFilter !== 'all') {
+      const btn = document.querySelector('[data-filter="' + currentFilter + '"]');
+      if (btn) {
+        document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      }
+    }
+
+    renderNewLowAlert();
+    renderTable();
+    updateSessionInfo();
+
+    // إغلاق Modal عند الضغط خارجه
+    document.getElementById('copyModal').addEventListener('click', function(e) {
+      if (e.target === this) closeCopyModal();
+    });
+  });
+
+  // ============ معاينة صفحة المدير ============
+function previewViewer() {
+  if (items.length === 0) {
+    showToast('ارفع ملف الجرد أولاً', 'error');
+    return;
+  }
+  
+  // احفظ نسخة خاصة للعرض
+  const viewData = {
+    date: new Date().toISOString(),
+    items: items.filter(function(i) { return !i.missing; }).map(function(i) {
+      const th = thresholds[i.name];
+      const isLow = th !== undefined && th !== '' && i.qty < th;
+      return {
+        name: i.name,
+        qty: i.qty,
+        low: isLow && !ignoredSet.has(i.name)
+      };
+    }),
+    lowCount: 0
+  };
+  
+  viewData.lowCount = viewData.items.filter(function(i) { return i.low; }).length;
+  
+  // احفظ في localStorage
+  localStorage.setItem('jerid_view_data', JSON.stringify(viewData));
+  
+  // افتح صفحة العرض
+  window.open('view.html', '_blank');
+  showToast('✅ تم فتح صفحة المدير', 'success');
+}
+</script>
+
+</body>
+</html>
