@@ -389,14 +389,16 @@
       const payload = {
         date: new Date().toISOString(),
         items: items.filter(function(i) { return !i.missing; }).map(function(i) {
-          const th = thresholds[i.name];
-          const isLow = th !== undefined && th !== '' && i.qty < th;
-          return {
-            name: i.name,
-            qty: i.qty,
-            low: isLow && !ignoredSet.has(i.name)
-          };
-        }),
+  const th = thresholds[i.name];
+  const isLow = th !== undefined && th !== '' && i.qty < th;
+  const isNewLow = newLowItems.some(function(n) { return n.name === i.name; });
+  return {
+    name: i.name,
+    qty: i.qty,
+    low: isLow && !ignoredSet.has(i.name),
+    isNew: isNewLow
+  };
+}),
         thresholds: thresholds,
         ignored: Array.from(ignoredSet),
         previousItems: previousItems,
