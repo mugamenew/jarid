@@ -746,7 +746,8 @@ newItemsList.forEach(function(item) {
         case 'decreased': pass = status === 'decreased' && !isIgnored; break;
         case 'missing': pass = item.missing === true; break;
         case 'ignored': pass = isIgnored; break;
-        default: pass = true;
+        case 'purchased': pass = purchasedItems.has(item.name); break;
+       default: pass = true;
       }
       if (pass) result.push(item);
     }
