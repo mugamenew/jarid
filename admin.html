@@ -1233,11 +1233,21 @@ async function loadFromCloud() {
   }
 
   // ============ بدء التشغيل ============
-  window.addEventListener('DOMContentLoaded', function() {
-    loadSession();
+  window.addEventListener('DOMContentLoaded', async function() {
+  // 1. استرجع الإعدادات المحلية
+  loadSession();
 
-    document.getElementById('pageSize').value = pageSize;
+  // 2. جرّب جلب البيانات من السحابة
+  showToast('⏳ جاري التحميل من السحابة...', 'info');
+  const ok = await loadFromCloud();
 
+  if (ok) {
+    showToast('✅ تم التحميل من السحابة', 'success');
+  } else if (items.length === 0) {
+    showToast('ℹ️ لا توجد بيانات، ارفع ملف الجرد', 'info');
+  }
+
+  document.getElementById('pageSize').value = pageSize;
     if (currentFilter !== 'all') {
       const btn = document.querySelector('[data-filter="' + currentFilter + '"]');
       if (btn) {
