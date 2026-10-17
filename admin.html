@@ -389,6 +389,7 @@
   async function pushToCloud() {
     try {
       const payload = {
+       purchasedItems: Array.from(purchasedItems),
         date: new Date().toISOString(),
         items: items.filter(function(i) { return !i.missing; }).map(function(i) {
   const th = thresholds[i.name];
