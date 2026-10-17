@@ -105,52 +105,35 @@
     animation: pulse-red 1.5s infinite;
   }
   @keyframes pulse-green {
-    0% {
-      box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.9);
-      transform: scale(1);
-    }
-    70% {
-      box-shadow: 0 0 0 12px rgba(0, 230, 118, 0);
-      transform: scale(1.1);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(0, 230, 118, 0);
-      transform: scale(1);
-    }
+    0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.9); transform: scale(1); }
+    70% { box-shadow: 0 0 0 12px rgba(0, 230, 118, 0); transform: scale(1.1); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); transform: scale(1); }
   }
   @keyframes pulse-red {
-    0% {
-      box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.9);
-      transform: scale(1);
-    }
-    70% {
-      box-shadow: 0 0 0 12px rgba(255, 82, 82, 0);
-      transform: scale(1.1);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
-      transform: scale(1);
-    }
+    0% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.9); transform: scale(1); }
+    70% { box-shadow: 0 0 0 12px rgba(255, 82, 82, 0); transform: scale(1.1); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); transform: scale(1); }
   }
 
   .stats-mini {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 6px; margin-bottom: 10px;
-    background: white; padding: 10px; border-radius: 12px;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 5px; margin-bottom: 10px;
+    background: white; padding: 8px; border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
   }
   .stat-box {
-    text-align: center; padding: 10px 4px;
+    text-align: center; padding: 8px 2px;
     background: #f8f9fa; border-radius: 8px;
     transition: transform 0.15s;
   }
   .stat-box:active { transform: scale(0.98); }
-  .stat-box .num { font-size: 19px; font-weight: bold; }
-  .stat-box .lbl { font-size: 10px; color: #777; margin-top: 2px; }
+  .stat-box .num { font-size: 17px; font-weight: bold; }
+  .stat-box .lbl { font-size: 9px; color: #777; margin-top: 2px; }
   .stat-box.red .num { color: #c62828; }
   .stat-box.orange .num { color: #e65100; }
   .stat-box.green .num { color: #2e7d32; }
   .stat-box.blue .num { color: #1565C0; }
+  .stat-box.purple .num { color: #9C27B0; }
   body.dark .stat-box .lbl { color: #aaa; }
 
   .alert-banner {
@@ -168,7 +151,6 @@
   body.dark .alert-banner .text b { color: #ff8a80; }
   body.dark .alert-banner .text p { color: #ccc; }
 
-  /* شريط المواد الجديدة */
   .new-banner {
     background: #fff3e0;
     border-right: 5px solid #FF9800;
@@ -224,6 +206,7 @@
   .filter-tab.low-tab.active { background: #c62828; border-color: #c62828; }
   .filter-tab.zero-tab.active { background: #e65100; border-color: #e65100; }
   .filter-tab.new-tab.active { background: #FF9800; border-color: #FF9800; }
+  .filter-tab.purchased-tab.active { background: #9C27B0; border-color: #9C27B0; }
 
   .table-container {
     background: white; border-radius: 12px; overflow: hidden;
@@ -251,11 +234,15 @@
   tr.is-new { background: #fff3e0 !important; }
   tr.is-new td { color: #E65100; font-weight: 600; }
   tr.is-new.low { background: #ffe0b2 !important; }
+  tr.is-purchased { background: #f3e5f5 !important; }
+  tr.is-purchased td { color: #4A148C; font-weight: 600; }
   body.dark tr.low { background: #4a1e1e !important; }
   body.dark tr.low td { color: #ffb0b0; }
   body.dark tr.zero { background: #4a3a10 !important; }
   body.dark tr.is-new { background: #4a2f10 !important; }
   body.dark tr.is-new td { color: #ffb74d; }
+  body.dark tr.is-purchased { background: #3a1a45 !important; }
+  body.dark tr.is-purchased td { color: #ce93d8; }
 
   .idx-cell { text-align: center; font-size: 12px; color: #999; font-weight: normal; }
   .qty-cell { text-align: center; font-weight: bold; font-size: 15px; }
@@ -272,6 +259,17 @@
     margin-left: 6px;
     vertical-align: middle;
     animation: badge-pulse 2s infinite;
+  }
+  .purchased-badge {
+    display: inline-block;
+    background: #9C27B0;
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+    margin-left: 6px;
+    vertical-align: middle;
   }
   @keyframes badge-pulse {
     0%, 100% { opacity: 1; }
@@ -361,8 +359,8 @@
     .qty-cell { font-size: 14px; }
     .search-box input { font-size: 13px; padding: 8px; }
     .filter-tab { padding: 6px 10px; font-size: 11px; }
-    .stat-box .num { font-size: 15px; }
-    .stat-box .lbl { font-size: 9px; }
+    .stat-box .num { font-size: 13px; }
+    .stat-box .lbl { font-size: 8px; }
     .btn { padding: 8px 12px; font-size: 12px; }
     .status-dot { width: 12px; height: 12px; }
   }
@@ -390,6 +388,7 @@
     tr.low td { color: #b71c1c !important; }
     tr.zero { background: #fff8e1 !important; -webkit-print-color-adjust: exact; }
     tr.is-new { background: #fff3e0 !important; -webkit-print-color-adjust: exact; }
+    tr.is-purchased { background: #f3e5f5 !important; -webkit-print-color-adjust: exact; }
     tr { page-break-inside: avoid; }
     .footer { box-shadow: none; border-top: 2px solid #2E7D32; background: white !important; margin-top: 15px; }
     .footer .lock { background: white; border: 1px solid #ddd; }
@@ -418,13 +417,17 @@
     <div class="num" id="statLow">0</div>
     <div class="lbl">منخفضة</div>
   </div>
-  <div class="stat-box orange">
-    <div class="num" id="statZero">0</div>
-    <div class="lbl">صفرية</div>
-  </div>
   <div class="stat-box blue">
     <div class="num" id="statNew">0</div>
     <div class="lbl">🆕 جديدة</div>
+  </div>
+  <div class="stat-box purple">
+    <div class="num" id="statPurchased">0</div>
+    <div class="lbl">🛒 مشتراة</div>
+  </div>
+  <div class="stat-box orange">
+    <div class="num" id="statZero">0</div>
+    <div class="lbl">صفرية</div>
   </div>
 </div>
 
@@ -464,6 +467,9 @@
   </button>
   <button class="filter-tab new-tab" data-filter="new" onclick="setFilter('new', this)">
     🆕 الجديدة <span class="cnt" id="cntNew">0</span>
+  </button>
+  <button class="filter-tab purchased-tab" data-filter="purchased" onclick="setFilter('purchased', this)">
+    🛒 مشتراة <span class="cnt" id="cntPurchased">0</span>
   </button>
   <button class="filter-tab zero-tab" data-filter="zero" onclick="setFilter('zero', this)">
     0️⃣ الصفرية <span class="cnt" id="cntZero">0</span>
@@ -509,8 +515,9 @@
   let currentPage = 1;
   const PAGE_SIZE = 50;
   let lastDateStr = null;
+  let purchasedSet = new Set();
 
-  // ============ تحميل البيانات من السحابة ============
+  // ============ تحميل البيانات ============
   async function loadData(silent) {
     try {
       let data = null;
@@ -549,6 +556,9 @@
 
       allItems = data.items;
 
+      // المواد المشتراة (كانت متجاهلة والآن كميتها > 0)
+      purchasedSet = new Set(data.purchasedItems || []);
+
       const d = new Date(data.date);
       document.getElementById('reportDate').innerHTML =
         '<span>📅 آخر تحديث: ' + d.toLocaleString('ar-EG') + '</span>' +
@@ -557,14 +567,17 @@
       const lowCount = allItems.filter(function(i) { return i.low; }).length;
       const zeroCount = allItems.filter(function(i) { return i.qty <= 0; }).length;
       const newCount = allItems.filter(function(i) { return i.isNew; }).length;
+      const purchasedCount = allItems.filter(function(i) { return purchasedSet.has(i.name); }).length;
 
       document.getElementById('statTotal').textContent = allItems.length;
       document.getElementById('statLow').textContent = lowCount;
       document.getElementById('statZero').textContent = zeroCount;
       document.getElementById('statNew').textContent = newCount;
+      document.getElementById('statPurchased').textContent = purchasedCount;
       document.getElementById('cntAll').textContent = allItems.length;
       document.getElementById('cntLow').textContent = lowCount;
       document.getElementById('cntNew').textContent = newCount;
+      document.getElementById('cntPurchased').textContent = purchasedCount;
       document.getElementById('cntZero').textContent = zeroCount;
 
       if (lowCount > 0) {
@@ -628,6 +641,7 @@
     filtered = allItems.filter(function(item) {
       if (currentFilter === 'low' && !item.low) return false;
       if (currentFilter === 'new' && !item.isNew) return false;
+      if (currentFilter === 'purchased' && !purchasedSet.has(item.name)) return false;
       if (currentFilter === 'zero' && item.qty > 0) return false;
       if (search && item.name.toLowerCase().indexOf(search) === -1) return false;
       return true;
@@ -643,6 +657,7 @@
       let msg = '🔍 لا توجد نتائج';
       if (currentFilter === 'low') msg = '✅ لا توجد مواد منخفضة';
       if (currentFilter === 'new') msg = '✅ لا توجد مواد جديدة تحت الحد';
+      if (currentFilter === 'purchased') msg = '✅ لا توجد مواد مشتراة حديثاً';
       if (currentFilter === 'zero') msg = '✅ لا توجد مواد صفرية';
       tbody.innerHTML = '<tr><td colspan="3" class="empty">' + msg + '</td></tr>';
       document.getElementById('pagination').style.display = 'none';
@@ -662,6 +677,7 @@
       if (item.low) classes.push('low');
       if (item.qty <= 0) classes.push('zero');
       if (item.isNew) classes.push('is-new');
+      if (purchasedSet.has(item.name)) classes.push('is-purchased');
       tr.className = classes.join(' ');
 
       const td0 = document.createElement('td');
@@ -674,6 +690,14 @@
         badge.className = 'new-badge';
         badge.textContent = '🆕 جديد';
         td1.appendChild(badge);
+      }
+      if (purchasedSet.has(item.name)) {
+        const badge2 = document.createElement('span');
+        badge2.className = 'purchased-badge';
+        badge2.textContent = '🛒 مشتراة';
+        td1.appendChild(badge2);
+      }
+      if (item.isNew || purchasedSet.has(item.name)) {
         td1.appendChild(document.createTextNode(' ' + item.name));
       } else {
         td1.textContent = item.name;
