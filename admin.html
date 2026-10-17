@@ -264,6 +264,7 @@
   <button class="filter-btn" data-filter="decreased" onclick="setFilter('decreased', this)">➖ نقص</button>
   <button class="filter-btn" data-filter="missing" onclick="setFilter('missing', this)">❌ مفقود</button>
   <button class="filter-btn" data-filter="ignored" onclick="setFilter('ignored', this)">🚫 متجاهل</button>
+  <button class="filter-btn" data-filter="purchased" onclick="setFilter('purchased', this)">🛒 مشتراة حديثاً</button>
 </div>
 
 <div class="status-bar">
@@ -366,6 +367,7 @@
   let ignoredSet = new Set();
   let currentFilter = 'all';
   let lastSessionDate = null;
+ let purchasedItems = new Set(); // المواد التي كانت متجاهلة وظهرت بكمية > 0
 
   // ============ Pagination ============
   let currentPage = 1;
@@ -653,14 +655,19 @@ async function loadFromCloud() {
       });
     }
 
-    newItemsList.forEach(function(item) {
-      if (item.fileThreshold !== null && item.fileThreshold !== undefined) {
-        thresholds[item.name] = item.fileThreshold;
-      }
-      if (item.fileIgnored) {
-        ignoredSet.add(item.name);
-      }
-    });
+    purchasedItems = new Set();
+newItemsList.forEach(function(item) {
+  if (item.fileThreshold !== null && item.fileThreshold !== undefined) {
+    thresholds[item.name] = item.fileThreshold;
+  }
+  if (item.fileIgnored) {
+    ignoredSet.add(item.name);
+  }
+  // 🆕 مادة كانت متجاهلة سابقاً، والآن كميتها > 0
+  if (ignoredSet.has(item.name) && item.qty > 0 && !item.missing) {
+    purchasedItems.add(item.name);
+  }
+});
 
     newLowItems = [];
     newItemsList.forEach(function(item) {
