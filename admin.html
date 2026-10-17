@@ -455,20 +455,77 @@
   }
 
   function loadSession() {
-    try {
-      thresholds = JSON.parse(localStorage.getItem(STORAGE.THRESHOLDS) || '{}');
-      const ignoredArr = JSON.parse(localStorage.getItem(STORAGE.IGNORED) || '[]');
-      ignoredSet = new Set(ignoredArr);
-      previousItems = JSON.parse(localStorage.getItem(STORAGE.PREVIOUS_ITEMS) || '{}');
-      itemStatus = JSON.parse(localStorage.getItem(STORAGE.ITEM_STATUS) || '{}');
-      itemStatus = JSON.parse(localStorage.getItem(STORAGE.STATUS) || '{}');
-      lastSessionDate = localStorage.getItem(STORAGE.SESSION_DATE);
-      const savedFilter = localStorage.getItem(STORAGE.FILTER);
-      if (savedFilter) currentFilter = savedFilter;
-      const savedPageSize = localStorage.getItem(STORAGE.PAGE_SIZE);
-      if (savedPageSize) pageSize = parseInt(savedPageSize);
-    } catch (e) { console.warn('loadSession:', e); }
+  try {
+    thresholds = JSON.parse(localStorage.getItem(STORAGE.THRESHOLDS) || '{}');
+    const ignoredArr = JSON.parse(localStorage.getItem(STORAGE.IGNORED) || '[]');
+    ignoredSet = new Set(ignoredArr);
+    previousItems = JSON.parse(localStorage.getItem(STORAGE.PREVIOUS_ITEMS) || '{}');
+    itemStatus = JSON.parse(localStorage.getItem(STORAGE.STATUS) || '{}');
+    lastSessionDate = localStorage.getItem(STORAGE.SESSION_DATE);
+    const savedFilter = localStorage.getItem(STORAGE.FILTER);
+    if (savedFilter) currentFilter = savedFilter;
+    const savedPageSize = localStorage.getItem(STORAGE.PAGE_SIZE);
+    if (savedPageSize) pageSize = parseInt(savedPageSize);
+  } catch (e) { console.warn('loadSession:', e); }
+}
+
+// ============ تحميل المواد من السحابة ============
+async function loadFromCloud() {
+  try {
+    const res = await fetch(API_URL + '/data');
+    if (!res.ok) return false;
+    const data = await res.json();
+    if (!data || !data.items || data.items.length === 0) return false;
+
+    // استرجع المواد
+    items = data.items.map(function(i) {
+      return {
+        name: i.name,
+        qty: i.qty,
+        missing: i.missing || false
+      };
+    });
+
+    // استرجع الحدود الدنيا
+    if (data.thresholds) {
+      thresholds = data.thresholds;
+      localStorage.setItem(STORAGE.THRESHOLDS, JSON.stringify(thresholds));
+    }
+
+    // استرجع المواد المتجاهلة
+    if (data.ignored && data.ignored.length > 0) {
+      ignoredSet = new Set(data.ignored);
+      localStorage.setItem(STORAGE.IGNORED, JSON.stringify(Array.from(ignoredSet)));
+    }
+
+    // استرجع الجلسة السابقة
+    if (data.previousItems) {
+      previousItems = data.previousItems;
+      localStorage.setItem(STORAGE.PREVIOUS_ITEMS, JSON.stringify(previousItems));
+    }
+
+    // استرجع حالة كل مادة
+    if (data.itemStatus) {
+      itemStatus = data.itemStatus;
+      localStorage.setItem(STORAGE.STATUS, JSON.stringify(itemStatus));
+    }
+
+    // استرجع تاريخ آخر حفظ
+    if (data.date) {
+      lastSessionDate = data.date;
+      localStorage.setItem(STORAGE.SESSION_DATE, data.date);
+    }
+
+    // تحديث الـ Map
+    itemsMap = new Map();
+    items.forEach(function(i) { itemsMap.set(i.name, i); });
+
+    return true;
+  } catch (e) {
+    console.warn('فشل الجلب من السحابة:', e);
+    return false;
   }
+}
 
   function updateSessionInfo() {
     const el = document.getElementById('sessionInfo');
