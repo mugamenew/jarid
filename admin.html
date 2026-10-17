@@ -448,7 +448,7 @@
       localStorage.setItem(STORAGE.SESSION_DATE, new Date().toISOString());
       lastSessionDate = new Date().toISOString();
       updateSessionInfo();
-      pushToCloud();
+     // pushToCloud();
     } catch (e) {
       console.warn('saveSession:', e);
       if (e.name === 'QuotaExceededError') {
